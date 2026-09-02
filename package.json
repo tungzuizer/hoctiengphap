@@ -1,0 +1,18 @@
+{
+  "name": "francais-delf-studio",
+  "version": "2.0.0",
+  "description": "Français DELF Studio - Client-side DELF Learning Web App with Secure OmniRoute Backend Proxy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/verify.js"
+  },
+  "keywords": [
+    "french",
+    "delf-b1",
+    "omniroute",
+    "phonetics"
+  ],
+  "author": "",
+  "license": "MIT"
+}

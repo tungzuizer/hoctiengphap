@@ -4,9 +4,9 @@
  */
 
 const CONFIG = {
-  DEFAULT_OMNIROUTE_BASE_URL: 'https://api.omniroute.io/v1',
-  DEFAULT_MODEL: 'claude-3-7-sonnet',
-  DEFAULT_FALLBACK_MODEL: 'gpt-4o-mini',
+  DEFAULT_OMNIROUTE_BASE_URL: 'http://localhost:20128/v1',
+  DEFAULT_MODEL: 'antigravity/gemini-3.7-flash-tiered',
+  DEFAULT_FALLBACK_MODEL: 'antigravity/gemini-3.7-flash-tiered',
   DEFAULT_LEVEL: 'B1',
   SPEECH_LANG: 'fr-FR',
   VOICE_NAME_PREFERENCES: ['Thomas', 'Amelie', 'Nicolas', 'Virginie', 'Google français', 'French', 'Hortense', 'Julie'],

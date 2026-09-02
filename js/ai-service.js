@@ -4,35 +4,64 @@
  */
 
 const AIService = {
-  // Main API Dispatcher
+  // Main API Dispatcher (Secure Proxy + Direct Client Fallback)
   async request({ systemPrompt, messages, temperature = 0.7, jsonMode = false, profileConfig = null }) {
-    const config = profileConfig || window.StateManager.getProfileConfig();
+    const config = profileConfig || (window.StateManager ? window.StateManager.getProfileConfig() : null);
     const apiKey = config?.apiKey?.trim();
+    const provider = config?.provider || 'omniroute';
+    const baseUrl = (config?.baseUrl || (window.CONFIG ? window.CONFIG.DEFAULT_OMNIROUTE_BASE_URL : 'http://localhost:20128/v1')).replace(/\/+$/, '');
+    const model = config?.model || (window.CONFIG ? window.CONFIG.DEFAULT_MODEL : 'antigravity/gemini-3.7-flash-tiered');
 
-    // If no API key is provided, use high-fidelity simulated response for testing & demonstration
-    if (!apiKey) {
-      console.warn('No API key provided. Falling back to Mock Demo Mode.');
-      return this.mockResponse({ systemPrompt, messages, jsonMode });
-    }
+    // Strategy 1: Check if running on Web Server with backend proxy (/api/ai)
+    // The server injects the API key from .env so frontend remains 100% secret & secure
+    const isWebOrigin = typeof window !== 'undefined' && window.location && (window.location.protocol === 'http:' || window.location.protocol === 'https:');
 
-    const provider = config.provider || 'omniroute';
-    let baseUrl = config.baseUrl || 'https://api.omniroute.io/v1';
-    const model = config.model || (window.CONFIG ? window.CONFIG.DEFAULT_MODEL : 'claude-3-7-sonnet');
+    if (isWebOrigin && !apiKey) {
+      try {
+        const proxyRes = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemPrompt,
+            messages,
+            temperature,
+            jsonMode,
+            model,
+            profileConfig: config ? { model: config.model, level: config.level } : null
+          })
+        });
 
-    // Clean baseUrl
-    baseUrl = baseUrl.replace(/\/+$/, '');
-
-    try {
-      if (provider === 'anthropic' && baseUrl.includes('anthropic.com')) {
-        return await this.callAnthropicDirect({ baseUrl, apiKey, model, systemPrompt, messages, temperature, jsonMode });
-      } else {
-        // OmniRoute / OpenAI-compatible endpoint
-        return await this.callOpenAICompatible({ baseUrl, apiKey, model, systemPrompt, messages, temperature, jsonMode });
+        if (proxyRes.ok) {
+          const data = await proxyRes.json();
+          if (data.success && data.content) {
+            return data.content;
+          } else if (data.error) {
+            throw new Error(data.error);
+          }
+        }
+      } catch (proxyErr) {
+        console.warn('Backend proxy /api/ai not reachable or returned error:', proxyErr.message);
       }
-    } catch (err) {
-      console.error('API Request Failed:', err);
-      throw new Error(`Lỗi kết nối AI (${provider}): ${err.message || 'Kiểm tra lại API Key hoặc Endpoint Base URL'}`);
     }
+
+    // Strategy 2: Direct Client Request (if user supplied an API key in Profile Settings)
+    if (apiKey) {
+      try {
+        if (provider === 'anthropic' && baseUrl.includes('anthropic.com')) {
+          return await this.callAnthropicDirect({ baseUrl, apiKey, model, systemPrompt, messages, temperature, jsonMode });
+        } else {
+          // OmniRoute / OpenAI-compatible endpoint
+          return await this.callOpenAICompatible({ baseUrl, apiKey, model, systemPrompt, messages, temperature, jsonMode });
+        }
+      } catch (err) {
+        console.error('API Request Failed:', err);
+        throw new Error(`Lỗi kết nối AI (${provider}): ${err.message || 'Kiểm tra lại API Key hoặc Endpoint Base URL'}`);
+      }
+    }
+
+    // Strategy 3: Mock fallback for offline or unconfigured instances
+    console.warn('No API key provided and proxy unavailable. Falling back to Mock Demo Mode.');
+    return this.mockResponse({ systemPrompt, messages, jsonMode });
   },
 
   // OmniRoute & OpenAI-Compatible Gateway Call
@@ -153,9 +182,9 @@ const AIService = {
 Yêu cầu bắt buộc:
 1. Chỉ dùng từ vựng, cấu trúc câu và các thì ngữ pháp hoàn toàn phù hợp với chuẩn trình độ CEFR [${level}].
 2. Luôn trả lời bằng TIẾNG PHÁP một cách ngắn gọn, thân thiện, tự nhiên và đặt thêm 1 câu hỏi gợi mở để học viên tiếp tục nói.
-3. Sau câu trả lời tiếng Pháp, hãy xuống 2 dòng, ghi chính xác "Nhận xét:" rồi phân tích ngắn gọn 1-2 lỗi từ vựng, ngữ pháp hoặc diễn đạt mà học viên vừa mắc phải trong câu vừa rồi bằng TIẾNG VIỆT (nếu câu nói của học viên hoàn toàn chuẩn xác, hãy khen ngợi và gợi ý một cách diễn đạt hay hơn nâng cao).
+3. Sau câu trả lời tiếng Pháp, hãy xuống 2 dòng, ghi chính xác "Nhận xét:" rồi phân tích ngắn gọn 1-2 lỗi từ vựng, ngữ pháp hoặc diễn đạt mà học viên vừa mắc phải trong câu vừa rồi bằng TIẾNG VIỆT (nếu học viên nhập tiếng Việt, hãy dịch câu đó sang tiếng Pháp chuẩn và giải thích cách nói).
 4. Xuống tiếp 2 dòng, ghi chính xác "Phát âm & Ngữ âm:" rồi hướng dẫn chi tiết bằng TIẾNG VIỆT về các điểm phát âm trong câu của học viên:
-   - Liệt kê 1-3 từ/cụm từ quan trọng kèm phiên âm IPA chuẩn Pháp (ví dụ: "beaucoup" /boku/, "les‿amis" /lez‿ami/, "tu" /ty/).
+   - Liệt kê 1-3 từ/cụm từ quan trọng kèm phiên âm IPA chuẩn Pháp (ví dụ: "beaucoup" /boku/, "les‿amis" /lez‿ami/, "tu" /ty/, "prononciation" /pʁɔnɔ̃sjasjɔ̃/).
    - Phân tích cạm bẫy phát âm người Việt hay mắc (âm câm lettre muette, âm mũi nasale [ɑ̃]/[ɔ̃]/[ɛ̃], âm [y] vs [u], âm R rung họng [ʁ], nối âm liaison bắt buộc).
    - Hướng dẫn khẩu hình miệng, vị trí lưỡi và cách bật hơi để phát âm chuẩn người Paris.
    Định dạng mỗi dòng phát âm:
@@ -253,16 +282,39 @@ Yêu cầu bắt buộc:
     }
 
     const transcript = conversationHistory
-      .map((turn, i) => `Học viên: "${turn.userText}"\nGiáo viên: "${turn.frenchReply}"`)
+      .map((turn, i) => `Lượt ${i + 1} - Học viên nói: "${turn.userText}"\nGiáo viên đáp: "${turn.frenchReply}"`)
       .join('\n\n');
 
     let systemPrompt = '';
 
     if (level === 'B1') {
-      systemPrompt = `Bạn là một giám khảo chấm thi Nói DELF B1 chính thức của France Éducation International.
+      systemPrompt = `Bạn là một Giám khảo chấm thi Nói DELF B1 chính thức và cực kỳ nghiêm khắc của France Éducation International.
 Nhiệm vụ: Dựa trên toàn bộ nội dung học viên đã nói trong phiên hội thoại tiếng Pháp dưới đây, hãy áp dụng đúng Grille d'évaluation de la production orale DELF B1 (Tổng 25 điểm).
 
-Thang điểm 6 tiêu chí:
+QUY TẮC CHẤM THI NGHIÊM NGẶT THEO BAREM CHÍNH THỨC CỦA FRANCE ÉDUCATION INTERNATIONAL:
+1. ĐIỀU KIỆN TIÊN QUYẾT VỀ NGÔN NGỮ (RẤT QUAN TRỌNG):
+   - Giám khảo CHỈ chấm điểm dựa trên TIẾNG PHÁP mà thí sinh đã nói.
+   - Nếu thí sinh nói/nhập bằng TIẾNG VIỆT, tiếng Anh hoặc ngôn ngữ khác (ví dụ: "bạn có thể chỉnh phát âm cho tôi không", "xin chào", "tôi muốn học"), hoặc chỉ hỏi câu phiếm không phải hội thoại tiếng Pháp:
+     -> BẮT BUỘC chấm TẤT CẢ các tiêu chí = 0 điểm. "tong_diem" = 0.0 / 25.
+     -> Ghi chú rõ: "Thí sinh sử dụng tiếng Việt/ngôn ngữ khác thay vì tiếng Pháp nên không có cơ sở đánh giá theo chuẩn DELF."
+
+2. BAREM THEO DUNG LƯỢNG VÀ SỐ LƯỢT HỘI THOẠI (VOLUME & ENGAGEMENT):
+   - Nếu thí sinh chỉ nói 1-2 câu tiếng Pháp rất ngắn (< 15 từ tiếng Pháp tổng cộng):
+     -> Các tiêu chí nhiệm vụ (entretien_dirige, exercice_interaction, expression_point_de_vue) chỉ được chấm 0.0 hoặc tối đa 0.5 - 1.0 điểm (mức Không đạt / Chưa đủ dữ liệu để đánh giá).
+     -> Tổng điểm "tong_diem" không được vượt quá 2.0 - 5.0 / 25 điểm.
+     -> Ghi chú: "Dung lượng bài thi quá ngắn (chỉ 1 câu), chưa đủ dữ liệu để đánh giá khả năng tương tác hay thuyết trình B1."
+   - Để đạt mức B1 (15 - 25 điểm): Thí sinh phải hoàn thành ít nhất 4-6 lượt nói tiếng Pháp có cấu trúc câu đầy đủ, sử dụng đúng thì quá khứ/tương lai, vốn từ phong phú và có lập luận quan điểm.
+
+3. 4 MỨC ĐIỂM CHUẨN CỦA MỖI TIÊU CHÍ (Grille officielle DELF B1):
+   - Mức 0: Không nói tiếng Pháp / Không trả lời / Hoàn toàn không hiểu. (0 điểm)
+   - Mức 1 (En dessous du niveau ciblé): Dưới chuẩn (1.0 điểm / max 4; 1.0-1.5 điểm / max 5).
+   - Mức 2 (Niveau ciblé): Đạt chuẩn B1 (2.5 điểm / max 4; 3.0 điểm / max 5).
+   - Mức 3 (Niveau ciblé +): Vượt chuẩn B1 (3.5 - 4.0 điểm / max 4; 4.0 - 5.0 điểm / max 5).
+
+4. TÍNH TỔNG ĐIỂM CHÍNH XÁC:
+   - "tong_diem" PHẢI LÀ TỔNG SỐ HỌC CHÍNH XÁC CỦA CÁC ĐIỂM TIÊU CHÍ CỘNG LẠI (Ví dụ: 0 + 0 + 0 + 0 + 0 + 0 = 0.0).
+
+6 tiêu chí chấm:
 1. entretien_dirige (max 4 điểm): Giới thiệu bản thân, nói về kinh nghiệm cá nhân.
 2. exercice_interaction (max 4 điểm): Tương tác, phản xạ xử lý tình huống hội thoại.
 3. expression_point_de_vue (max 4 điểm): Trình bày ý kiến cá nhân, lập luận.
@@ -272,19 +324,20 @@ Thang điểm 6 tiêu chí:
 
 Hãy trả về DUY NHẤT một JSON theo cấu trúc sau (không kèm markdown thừa):
 {
-  "entretien_dirige": { "level": "B1", "score": 3.0, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
-  "exercice_interaction": { "level": "B1", "score": 3.0, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
+  "entretien_dirige": { "level": "B1", "score": 2.5, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
+  "exercice_interaction": { "level": "B1", "score": 2.5, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
   "expression_point_de_vue": { "level": "B1", "score": 2.5, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
-  "lexique": { "level": "B1", "score": 3.5, "max": 5, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
-  "morphosyntaxe": { "level": "B1", "score": 3.0, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
-  "phonologie": { "level": "B1", "score": 3.0, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
-  "tong_diem": 18.0,
+  "lexique": { "level": "B1", "score": 3.0, "max": 5, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
+  "morphosyntaxe": { "level": "B1", "score": 2.5, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
+  "phonologie": { "level": "B1", "score": 2.5, "max": 4, "notes": "Ghi chú nhận xét bằng tiếng Việt" },
+  "tong_diem": 15.5,
   "overall_feedback": "2-3 câu tổng kết điểm mạnh và những điểm cần cải thiện nhất bằng tiếng Việt.",
   "frequent_errors": ["Lỗi 1", "Lỗi 2"]
 }`;
     } else {
       // A1 or A2 simplified criteria
-      systemPrompt = `Bạn là giám khảo chấm thi Nói DELF trình độ [${level}].
+      systemPrompt = `Bạn là giám khảo chấm thi Nói DELF trình độ [${level}] chính thức.
+QUY TẮC: Nếu thí sinh nói bằng tiếng Việt hoặc ngôn ngữ khác không phải tiếng Pháp -> Tất cả các tiêu chí = 0 điểm, tổng điểm = 0/15. Nếu chỉ nói 1 câu ngắn -> Tổng điểm chỉ từ 1-3 điểm.
 Áp dụng tiêu chí đánh giá tiếng Pháp cho trình độ ${level} (Tổng 15 điểm):
 1. lexique (max 5 điểm): Từ vựng cơ bản.
 2. morphosyntaxe (max 5 điểm): Ngữ pháp câu đơn giản.
@@ -292,21 +345,21 @@ Hãy trả về DUY NHẤT một JSON theo cấu trúc sau (không kèm markdown
 
 Trả về JSON:
 {
-  "lexique": { "level": "${level}", "score": 3.5, "max": 5, "notes": "Nhận xét tiếng Việt" },
-  "morphosyntaxe": { "level": "${level}", "score": 3.5, "max": 5, "notes": "Nhận xét tiếng Việt" },
-  "phonologie": { "level": "${level}", "score": 4.0, "max": 5, "notes": "Nhận xét tiếng Việt" },
-  "tong_diem": 11.0,
+  "lexique": { "level": "${level}", "score": 3.0, "max": 5, "notes": "Nhận xét tiếng Việt" },
+  "morphosyntaxe": { "level": "${level}", "score": 3.0, "max": 5, "notes": "Nhận xét tiếng Việt" },
+  "phonologie": { "level": "${level}", "score": 3.0, "max": 5, "notes": "Nhận xét tiếng Việt" },
+  "tong_diem": 9.0,
   "overall_feedback": "Nhận xét tổng quan bằng tiếng Việt",
   "frequent_errors": ["Lỗi 1", "Lỗi 2"]
 }`;
     }
 
-    const userMessage = `Dưới đây là trích đoạn hội thoại trong buổi luyện nói của tôi:\n\n${transcript}\n\nHãy chấm điểm chi tiết theo thang điểm.`;
+    const userMessage = `Dưới đây là toàn bộ trích đoạn các câu học viên đã nói trong phiên hội thoại này:\n\n${transcript}\n\nHãy chấm điểm chi tiết, nghiêm khắc và chính xác theo đúng barem Grille DELF của France Éducation International.`;
 
     const rawResponse = await this.request({
       systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
-      temperature: 0.3,
+      temperature: 0.2,
       jsonMode: true
     });
 
@@ -404,19 +457,12 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
 
   // Realistic Simulation / Demo Mode for testing when API key is not entered
   mockResponse({ systemPrompt, messages, jsonMode }) {
+    const userMessageContent = messages && messages.length > 0 ? messages[messages.length - 1].content : '';
+
     // If request was for DELF speaking evaluation
-    if (systemPrompt.includes('giám khảo chấm thi Nói DELF')) {
-      return JSON.stringify({
-        entretien_dirige: { level: 'B1', score: 3.5, max: 4, notes: 'Bạn giới thiệu bản thân tự tin, nêu được thông tin cá nhân rõ ràng.' },
-        exercice_interaction: { level: 'B1', score: 3.0, max: 4, notes: 'Phản hồi tình huống khá nhanh, biết cách hỏi lại khi chưa rõ ý.' },
-        expression_point_de_vue: { level: 'B1', score: 3.0, max: 4, notes: 'Nêu được quan điểm cá nhân, có ví dụ minh họa thực tế.' },
-        lexique: { level: 'B1', score: 3.5, max: 5, notes: 'Vốn từ vựng tương đối phong phú cho các chủ đề hàng ngày.' },
-        morphosyntaxe: { level: 'B1', score: 3.0, max: 4, notes: 'Cần chú ý chia thì Passé Composé và Imparfait chính xác hơn.' },
-        phonologie: { level: 'B1', score: 3.5, max: 4, notes: 'Phát âm rõ ràng, ngữ điệu tự nhiên.' },
-        tong_diem: 19.5,
-        overall_feedback: 'Buổi luyện tập rất hiệu quả! Bạn có phản xạ giao tiếp tốt, vốn từ B1 vững. Hãy rèn luyện thêm sự phối hợp giữa Passé composé và Imparfait.',
-        frequent_errors: ['Nhầm lẫn giữa Imparfait và Passé Composé', 'Giống của danh từ (le/la)']
-      });
+    if (systemPrompt.includes('giám khảo chấm thi Nói DELF') || systemPrompt.includes('Grille d\'évaluation de la production orale')) {
+      const isB1 = !systemPrompt.includes('Tổng 15 điểm');
+      return this._mockSpeakingEvaluation(userMessageContent, isB1);
     }
 
     // If request was for Reading exercise
@@ -504,6 +550,25 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
     }
 
     // Default conversational response with comprehensive phonetics & tips
+    const lastUserMsg = messages && messages.length > 0 ? (messages[messages.length - 1].content || '') : '';
+    // Dynamic Vietnamese Detection: characters unique to Vietnamese (tones, horns, hooks, d-bar)
+    // Note: French uses à, â, é, è, ê, ë, î, ï, ô, ù, û, ü, ç which are NOT treated as Vietnamese.
+    const vietnamesePattern = /[ăắằẳẵặấầẩẫậếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúủũụứừửữựýỳỷỹỵđảãạẻẽẹỉĩịỏõọủũụỷỹỵ]/i;
+    const vietnameseCommonWords = /\b(tôi|bạn|chúng\s*tôi|anh|chị|không|có\s*thể|chỉnh|phát\s*âm|tiếng\s*việt|giúp|với|nhé|được|luyện\s*tập|xin\s*chào|cảm\s*ơn)\b/i;
+    const isVietnameseInput = vietnamesePattern.test(lastUserMsg) || vietnameseCommonWords.test(lastUserMsg);
+
+    if (isVietnameseInput) {
+      return `Bien sûr ! Avec grand plaisir. En français, pour dire "bạn có thể chỉnh phát âm cho tôi không", vous pouvez dire : « Pouvez-vous corriger ma prononciation s'il vous plaît ? » Répétez après moi cette phrase !
+
+Nhận xét:
+Khi muốn nhờ giáo viên sửa phát âm, trong tiếng Pháp bạn hãy dùng cấu trúc lịch sự: "Pouvez-vous corriger ma prononciation ?" (hoặc "Peux-tu corriger ma prononciation ?"). Hãy thử bấm nút Micro và nói câu tiếng Pháp này nhé!
+
+Phát âm & Ngữ âm:
+- Pouvez-vous (/puve vu/): Âm [u] trong "pouvez" chu tròn môi sâu, nối âm nhẹ giữa -z và vous.
+- corriger (/kɔʁiʒe/): Chú ý âm [ʁ] rung nhẹ ở đáy cổ họng và âm [ʒ] rung mềm.
+- prononciation (/pʁɔnɔ̃sjasjɔ̃/): Có 2 âm mũi [ɔ̃] ("on" và "on"), hạ hàm mềm để hơi thoát lên khoang mũi.`;
+    }
+
     return `Bonjour ! C'est un plaisir d'échanger avec vous en français. Votre phrase est très claire. Pouvez-vous me parler un peu plus de vos activités préférées pendant le week-end ?
 
 Nhận xét:
@@ -513,6 +578,124 @@ Phát âm & Ngữ âm:
 - Bonjour (/bɔ̃ʒuʁ/): Chú ý âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ], không phát âm thành "bông-dua".
 - activité (/aktivite/): Âm "é" phát âm sắc và dứt khoát, không kéo dài như tiếng Việt.
 - faire du vélo (/fɛʁ dy velo/): Chữ "du" mang âm [y], hãy đặt khẩu hình chữ "i" rồi chu tròn môi như huýt sáo.`;
+  },
+
+  // Dynamic Barem Evaluator for Simulation / Demo Mode
+  _mockSpeakingEvaluation(userContent, isB1 = true) {
+    const userMatches = userContent ? [...userContent.matchAll(/Học viên nói:\s*"([^"]+)"/g)].map(m => m[1]) : [];
+    const fullUserText = userMatches.join(' ').trim();
+
+    // Check for Vietnamese-specific characters (tones, horns, hooks, d-bar)
+    // Note: French uses à, â, é, è, ê, ë, î, ï, ô, ù, û, ü, ç which are standard French vowels.
+    const vietnamesePattern = /[ăắằẳẵặấầẩẫậếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúủũụứừửữựýỳỷỹỵđảãạẻẽẹỉĩịỏõọủũụỷỹỵ]/i;
+    const vietnameseCommonWords = /\b(tôi|bạn|chúng\s*tôi|chúng\s*ta|anh|chị|không|có\s*thể|chỉnh|phát\s*âm|tiếng\s*việt|giúp|với|nhé|được|luyện\s*tập|xin\s*chào|cảm\s*ơn)\b/i;
+
+    const isVietnamese = vietnamesePattern.test(fullUserText) || vietnameseCommonWords.test(fullUserText);
+    const words = fullUserText ? fullUserText.split(/\s+/).filter(w => w.length > 0) : [];
+    const wordCount = words.length;
+    const turnCount = userMatches.length || 1;
+
+    // Case 1: Spoke in Vietnamese / Non-French
+    if (isVietnamese || wordCount === 0) {
+      if (isB1) {
+        return JSON.stringify({
+          entretien_dirige: { level: 'B1', score: 0.0, max: 4, notes: 'Thí sinh nhập/nói bằng tiếng Việt ("' + (fullUserText.substring(0, 45) || 'trống') + '..."), không có phát ngôn tiếng Pháp để đánh giá.' },
+          exercice_interaction: { level: 'B1', score: 0.0, max: 4, notes: 'Chưa thực hiện tương tác bằng tiếng Pháp.' },
+          expression_point_de_vue: { level: 'B1', score: 0.0, max: 4, notes: 'Chưa trình bày quan điểm bằng tiếng Pháp.' },
+          lexique: { level: 'B1', score: 0.0, max: 5, notes: 'Không có từ vựng tiếng Pháp nào được sử dụng.' },
+          morphosyntaxe: { level: 'B1', score: 0.0, max: 4, notes: 'Không có cấu trúc ngữ pháp tiếng Pháp.' },
+          phonologie: { level: 'B1', score: 0.0, max: 4, notes: 'Chưa phát âm tiếng Pháp.' },
+          tong_diem: 0.0,
+          overall_feedback: 'Không thể chấm điểm đạt chuẩn vì toàn bộ hội thoại được thực hiện bằng tiếng Việt ("' + (fullUserText.substring(0, 35) || '') + '"). Trong bài thi Nói DELF B1 chính thức, thí sinh bắt buộc phải nói hoàn toàn bằng tiếng Pháp.',
+          frequent_errors: ['Nói tiếng Việt thay vì tiếng Pháp', 'Chưa hoàn thành các phần thi DELF']
+        });
+      } else {
+        return JSON.stringify({
+          lexique: { level: 'A2', score: 0.0, max: 5, notes: 'Chưa sử dụng từ vựng tiếng Pháp.' },
+          morphosyntaxe: { level: 'A2', score: 0.0, max: 5, notes: 'Chưa có cấu trúc ngữ pháp tiếng Pháp.' },
+          phonologie: { level: 'A2', score: 0.0, max: 5, notes: 'Chưa phát âm tiếng Pháp.' },
+          tong_diem: 0.0,
+          overall_feedback: 'Không thể chấm điểm vì bạn nói bằng tiếng Việt. Hãy chuyển sang nói bằng tiếng Pháp nhé!',
+          frequent_errors: ['Sử dụng tiếng Việt thay vì tiếng Pháp']
+        });
+      }
+    }
+
+    // Case 2: Only 1 short sentence (< 12 French words)
+    if (turnCount <= 1 || wordCount < 12) {
+      if (isB1) {
+        return JSON.stringify({
+          entretien_dirige: { level: 'B1', score: 1.0, max: 4, notes: 'Chỉ có 1 câu ngắn ("' + fullUserText + '"), chưa đủ dung lượng để giới thiệu bản thân chi tiết theo chuẩn B1.' },
+          exercice_interaction: { level: 'B1', score: 0.5, max: 4, notes: 'Chưa có tương tác trao đổi qua lại (mới có 1 lượt nói).' },
+          expression_point_de_vue: { level: 'B1', score: 0.0, max: 4, notes: 'Chưa có phần thuyết trình bày tỏ quan điểm và lập luận B1.' },
+          lexique: { level: 'B1', score: 1.0, max: 5, notes: 'Vốn từ quá ít trong phiên này (' + wordCount + ' từ).' },
+          morphosyntaxe: { level: 'B1', score: 1.0, max: 4, notes: 'Cấu trúc câu đơn lẻ, chưa thể hiện được các thì và liên từ B1.' },
+          phonologie: { level: 'B1', score: 1.0, max: 4, notes: 'Phát âm nhận diện được nhưng chưa đủ dữ liệu để đánh giá ngữ điệu.' },
+          tong_diem: 4.5,
+          overall_feedback: 'Dung lượng bài thi của bạn quá ngắn (chỉ 1 câu, ' + wordCount + ' từ). Để giám khảo chấm đúng chuẩn DELF B1, bạn cần duy trì cuộc trò chuyện tối thiểu 4-6 lượt nói với đầy đủ các phần thi.',
+          frequent_errors: ['Dung lượng bài thi quá ngắn (< 15 từ)', 'Thiếu phần tương tác và thuyết trình quan điểm']
+        });
+      } else {
+        return JSON.stringify({
+          lexique: { level: 'A2', score: 1.5, max: 5, notes: 'Vốn từ quá ít (' + wordCount + ' từ).' },
+          morphosyntaxe: { level: 'A2', score: 1.5, max: 5, notes: 'Chưa đủ cấu trúc câu.' },
+          phonologie: { level: 'A2', score: 1.5, max: 5, notes: 'Phát âm cơ bản.' },
+          tong_diem: 4.5,
+          overall_feedback: 'Bạn cần nói nhiều câu hơn để được đánh giá đầy đủ.',
+          frequent_errors: ['Dung lượng bài thi quá ngắn']
+        });
+      }
+    }
+
+    // Case 3: 2-3 short turns (12-35 words)
+    if (turnCount <= 3 || wordCount < 35) {
+      if (isB1) {
+        return JSON.stringify({
+          entretien_dirige: { level: 'B1', score: 2.0, max: 4, notes: 'Có nỗ lực giới thiệu nhưng còn ngắn, cần mở rộng chi tiết hơn.' },
+          exercice_interaction: { level: 'B1', score: 1.5, max: 4, notes: 'Đã có phản xạ đối đáp nhưng chưa chủ động hỏi lại giám khảo.' },
+          expression_point_de_vue: { level: 'B1', score: 1.0, max: 4, notes: 'Chưa nêu được luận điểm rõ ràng và ví dụ minh họa.' },
+          lexique: { level: 'B1', score: 2.0, max: 5, notes: 'Từ vựng ở mức cơ bản, cần đa dạng hóa từ vựng chủ đề B1.' },
+          morphosyntaxe: { level: 'B1', score: 2.0, max: 4, notes: 'Cần sử dụng thêm các thì quá khứ (passé composé/imparfait) và liên từ nối câu.' },
+          phonologie: { level: 'B1', score: 2.0, max: 4, notes: 'Phát âm tương đối rõ, chú ý các âm mũi và nối âm.' },
+          tong_diem: 10.5,
+          overall_feedback: 'Bạn đã bắt đầu phản xạ tiếng Pháp tốt, nhưng dung lượng buổi luyện cần dài hơn và mở rộng câu trả lời để đạt chuẩn B1 (trên 15/25 điểm).',
+          frequent_errors: ['Câu trả lời còn ngắn', 'Chưa sử dụng đa dạng các thì ngữ pháp B1']
+        });
+      } else {
+        return JSON.stringify({
+          lexique: { level: 'A2', score: 2.5, max: 5, notes: 'Từ vựng A2 cơ bản.' },
+          morphosyntaxe: { level: 'A2', score: 2.5, max: 5, notes: 'Cấu trúc câu đơn giản.' },
+          phonologie: { level: 'A2', score: 3.0, max: 5, notes: 'Phát âm rõ ràng.' },
+          tong_diem: 8.0,
+          overall_feedback: 'Khá tốt! Hãy tiếp tục luyện tập thêm các câu ghép.',
+          frequent_errors: ['Cần mở rộng câu dài hơn']
+        });
+      }
+    }
+
+    // Case 4: Full active French conversation (>= 4 turns, >= 35 words)
+    if (isB1) {
+      return JSON.stringify({
+        entretien_dirige: { level: 'B1', score: 3.0, max: 4, notes: 'Thí sinh giới thiệu bản thân tự tin, truyền đạt thông tin cá nhân mạch lạc.' },
+        exercice_interaction: { level: 'B1', score: 3.0, max: 4, notes: 'Phản xạ tương tác tự nhiên, biết cách duy trì luồng hội thoại.' },
+        expression_point_de_vue: { level: 'B1', score: 2.5, max: 4, notes: 'Đã trình bày được quan điểm cá nhân, có giải thích lý do.' },
+        lexique: { level: 'B1', score: 3.5, max: 5, notes: 'Vốn từ vựng tương đối phong phú cho các chủ đề thường nhật B1.' },
+        morphosyntaxe: { level: 'B1', score: 3.0, max: 4, notes: 'Sử dụng tốt các thì cơ bản, chú ý phân biệt rõ Passé composé và Imparfait.' },
+        phonologie: { level: 'B1', score: 3.0, max: 4, notes: 'Phát âm rõ ràng, ngữ điệu tự nhiên, chú ý thêm nối âm liaisons.' },
+        tong_diem: 18.0,
+        overall_feedback: 'Buổi luyện tập rất hiệu quả! Bạn có phản xạ giao tiếp tự nhiên và vốn từ B1 vững. Hãy rèn luyện thêm sự phối hợp giữa Passé composé và Imparfait trong các câu chuyện kể.',
+        frequent_errors: ['Chia thì Passé Composé vs Imparfait', 'Giống của danh từ (le/la)']
+      });
+    } else {
+      return JSON.stringify({
+        lexique: { level: 'A2', score: 4.0, max: 5, notes: 'Vốn từ vựng A2 rất tốt.' },
+        morphosyntaxe: { level: 'A2', score: 3.5, max: 5, notes: 'Ngữ pháp chắc chắn.' },
+        phonologie: { level: 'A2', score: 4.0, max: 5, notes: 'Phát âm rõ và chuẩn.' },
+        tong_diem: 11.5,
+        overall_feedback: 'Rất xuất sắc! Bạn đã sẵn sàng để nâng lên mục tiêu B1.',
+        frequent_errors: ['Chú ý mạo từ rút gọn']
+      });
+    }
   }
 };
 

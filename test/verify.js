@@ -25,7 +25,8 @@ async function runTests() {
 
   // Test 1: Config
   console.log('1. Kiểm tra CONFIG & Grille DELF B1:');
-  assert.ok(CONFIG.DEFAULT_OMNIROUTE_BASE_URL.includes('omniroute.io'), 'Base URL OmniRoute đúng chuẩn');
+  assert.ok(CONFIG.DEFAULT_OMNIROUTE_BASE_URL.includes('20128') || CONFIG.DEFAULT_OMNIROUTE_BASE_URL.includes('omniroute'), 'Base URL OmniRoute đúng chuẩn');
+  assert.ok(CONFIG.DEFAULT_MODEL.includes('gemini-3.7-flash-tiered') || CONFIG.DEFAULT_MODEL.includes('sonnet'), 'Model AI mặc định được cấu hình đúng');
   assert.strictEqual(CONFIG.DELF_B1_CRITERIA.length, 6, 'Grille DELF B1 phải có đúng 6 tiêu chí chính thức');
   const totalB1Max = CONFIG.DELF_B1_CRITERIA.reduce((sum, c) => sum + c.maxPoints, 0);
   assert.strictEqual(totalB1Max, 25, 'Tổng điểm tối đa DELF B1 phải là 25/25');
@@ -109,11 +110,36 @@ async function runTests() {
   assert.ok(tutorReply.feedbackVi, 'Có nhận xét tiếng Việt');
   assert.ok(tutorReply.phonetics, 'Có danh sách phân tích ngữ âm phonetics');
 
+  // Test 4.1: Kiểm tra phản xạ khi học viên nói/gõ tiếng Việt
+  const vnTutorReply = await AIService.chatWithTutor('bạn có thể chỉnh phát âm cho tôi không', [], 'B1');
+  assert.ok(vnTutorReply.frenchReply.includes('Pouvez-vous corriger ma prononciation'), 'Gợi ý đúng câu tiếng Pháp mẫu khi học viên hỏi tiếng Việt');
+  assert.ok(vnTutorReply.phonetics.length >= 2, 'Cung cấp thẻ phát âm IPA và mẹo khẩu hình miệng');
+
+  // Test 4.2: Barem DELF B1 - Thí sinh nói Tiếng Việt -> 0.0 / 25 điểm
+  const vnEvalResult = await AIService.evaluateSpeakingSession([
+    { userText: 'bạn có thể chỉnh phát âm cho tôi không', frenchReply: '...' }
+  ], 'B1');
+  assert.strictEqual(vnEvalResult.tong_diem, 0.0, 'Nói tiếng Việt phải bị 0.0/25 điểm theo quy chế thi DELF');
+  assert.strictEqual(vnEvalResult.lexique.score, 0.0, 'Từ vựng = 0 khi nói tiếng Việt');
+  assert.strictEqual(vnEvalResult.phonologie.score, 0.0, 'Phát âm = 0 khi nói tiếng Việt');
+
+  // Test 4.3: Barem DELF B1 - Thí sinh nói 1 câu tiếng Pháp ngắn (< 12 từ) -> Điểm rút gọn chuẩn xác (<= 5.0 / 25)
+  const shortEvalResult = await AIService.evaluateSpeakingSession([
+    { userText: 'Je m\'appelle Tung et j\'aime le sport.', frenchReply: 'Très bien.' }
+  ], 'B1');
+  assert.ok(shortEvalResult.tong_diem <= 5.0, 'Nói 1 câu ngắn không được vượt quá 5.0/25 điểm');
+  assert.ok(shortEvalResult.tong_diem > 0.0, 'Nói câu tiếng Pháp hợp lệ có điểm');
+
+  // Test 4.4: Barem DELF B1 - Hội thoại đầy đủ
   const evalResult = await AIService.evaluateSpeakingSession([
-    { userText: 'Je voudrais parler de mon travail en France.', frenchReply: 'Très bien, continuez.' }
+    { userText: 'Bonjour, je voudrais parler de mon travail et de mes loisirs en France.', frenchReply: 'D\'accord.' },
+    { userText: 'Chaque week-end, je fais du sport et je visite des musées historiques à Paris.', frenchReply: 'Très intéressant.' },
+    { userText: 'À mon avis, le développement des transports en commun est essentiel pour réduire la pollution.', frenchReply: 'Bien argumenté.' },
+    { userText: 'En conclusion, c\'est un sujet important pour notre avenir.', frenchReply: 'Merci beaucoup.' }
   ], 'B1');
 
   assert.ok(typeof evalResult.tong_diem === 'number', 'Có tổng điểm số');
+  assert.ok(evalResult.tong_diem >= 15.0, 'Hội thoại đầy đủ B1 đạt điểm chuẩn');
   assert.ok(evalResult.entretien_dirige, 'Có tiêu chí entretien_dirige');
   assert.ok(evalResult.lexique, 'Có tiêu chí lexique');
   assert.ok(evalResult.morphosyntaxe, 'Có tiêu chí morphosyntaxe');

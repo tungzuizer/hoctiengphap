@@ -466,6 +466,16 @@
       </div>
 
       <form id="form-profile-settings">
+        <div style="background: rgba(46, 213, 115, 0.12); border: 1px solid rgba(46, 213, 115, 0.35); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; margin-bottom: 0.9rem; font-size: 0.82rem; color: var(--text-color);">
+          <div style="font-weight: 700; display: flex; align-items: center; gap: 0.4rem; color: #2ed573;">
+            <span class="btn-icon-slot" data-icon="check"></span> 🔒 OmniRoute Backend Proxy Bảo Mật
+          </div>
+          <div style="margin-top: 0.25rem; font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
+            API Key được lưu an toàn trong file <code>.env</code> trên máy chủ và ẩn hoàn toàn khỏi Frontend.<br>
+            Cổng kết nối: <code>http://localhost:20128/v1</code> &bull; Model: <code>antigravity/gemini-3.7-flash-tiered</code>
+          </div>
+        </div>
+
         <div style="margin-bottom: 0.75rem;">
           <label class="form-label">Tên hiển thị:</label>
           <input type="text" class="form-input" id="settings-profile-name" required>
@@ -483,7 +493,7 @@
         <div style="margin-bottom: 0.75rem;">
           <label class="form-label">Nhà cung cấp AI:</label>
           <select class="form-input" id="settings-provider">
-            <option value="omniroute">OmniRoute Gateway (OpenAI Compatible)</option>
+            <option value="omniroute" selected>OmniRoute Gateway (Cục bộ & Máy chủ)</option>
             <option value="anthropic">Anthropic Messages API</option>
             <option value="openai">OpenAI API</option>
           </select>
@@ -491,20 +501,20 @@
 
         <div style="margin-bottom: 0.75rem;">
           <label class="form-label">OmniRoute / Custom Base URL:</label>
-          <input type="text" class="form-input" id="settings-baseurl" placeholder="https://api.omniroute.io/v1">
-          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Mặc định: <code>https://api.omniroute.io/v1</code></small>
+          <input type="text" class="form-input" id="settings-baseurl" placeholder="http://localhost:20128/v1">
+          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Mặc định: <code>http://localhost:20128/v1</code></small>
         </div>
 
         <div style="margin-bottom: 0.75rem;">
           <label class="form-label">Model AI:</label>
-          <input type="text" class="form-input" id="settings-model" placeholder="claude-3-7-sonnet hoặc gpt-4o-mini">
-          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Hỗ trợ <code>claude-3-7-sonnet</code>, <code>claude-3-5-sonnet</code>, <code>gpt-4o-mini</code>...</small>
+          <input type="text" class="form-input" id="settings-model" placeholder="antigravity/gemini-3.7-flash-tiered">
+          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Mặc định: <code>antigravity/gemini-3.7-flash-tiered</code> (hoặc <code>claude-3-7-sonnet</code>)</small>
         </div>
 
         <div style="margin-bottom: 1.25rem;">
-          <label class="form-label">API Key của bạn:</label>
-          <input type="password" class="form-input" id="settings-apikey" placeholder="Nhập API Key...">
-          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">API Key được lưu trữ an toàn trong localStorage trình duyệt của riêng bạn.</small>
+          <label class="form-label">API Key riêng (Tùy chọn ghi đè):</label>
+          <input type="password" class="form-input" id="settings-apikey" placeholder="Để trống để dùng Server Proxy .env">
+          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Để trống để tự động sử dụng API Key bảo mật từ Backend server.</small>
         </div>
 
         <button type="submit" class="btn-primary" style="width: 100%;">
