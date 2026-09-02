@@ -154,20 +154,34 @@ const App = {
     let touchStartY = 0;
     let touchEndX = 0;
     let touchEndY = 0;
+    let touchStartTime = 0;
     let isTracking = false;
 
-    const mainContent = document.querySelector('.app-main') || document.body;
+    const container = document.querySelector('.app-container') || document.body;
 
-    mainContent.addEventListener('touchstart', (e) => {
+    container.addEventListener('touchstart', (e) => {
+      // Strictly disabled on desktop / wide screens (width > 768px) to prevent interfering with mouse/trackpad
+      if (window.innerWidth > 768) {
+        isTracking = false;
+        return;
+      }
+
       const target = e.target;
-      // Skip gesture handling when interacting with modals, forms, sliders, inputs, or horizontal audio/seed scroll containers
+      // Skip gesture handling when interacting with interactive UI elements or scrollable areas
       if (
         target.closest('.modal') ||
         target.closest('input') ||
         target.closest('textarea') ||
         target.closest('select') ||
+        target.closest('button') ||
         target.closest('.chat-messages-container') ||
-        target.closest('.rate-buttons')
+        target.closest('.topics-bento-grid') ||
+        target.closest('.phonetics-items-grid') ||
+        target.closest('.rate-buttons') ||
+        target.closest('.options-list') ||
+        target.closest('.seeds-grid') ||
+        target.closest('.seed-grid') ||
+        target.closest('.table-responsive')
       ) {
         isTracking = false;
         return;
@@ -178,11 +192,12 @@ const App = {
         touchStartY = e.touches[0].clientY;
         touchEndX = touchStartX;
         touchEndY = touchStartY;
+        touchStartTime = Date.now();
         isTracking = true;
       }
     }, { passive: true });
 
-    mainContent.addEventListener('touchmove', (e) => {
+    container.addEventListener('touchmove', (e) => {
       if (!isTracking) return;
       if (e.touches && e.touches.length === 1) {
         touchEndX = e.touches[0].clientX;
@@ -190,15 +205,19 @@ const App = {
       }
     }, { passive: true });
 
-    mainContent.addEventListener('touchend', () => {
+    container.addEventListener('touchend', () => {
       if (!isTracking) return;
       isTracking = false;
 
+      // Only on mobile screens
+      if (window.innerWidth > 768) return;
+
       const deltaX = touchEndX - touchStartX;
       const deltaY = touchEndY - touchStartY;
+      const duration = Date.now() - touchStartTime;
 
-      // Check if horizontal swipe is dominant (minimum 50px delta and 1.4x steeper than vertical)
-      if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
+      // Must be a deliberate, fast swipe (duration < 450ms, distance >= 75px, horizontal dominance > 2.2x vertical)
+      if (duration < 450 && duration > 50 && Math.abs(deltaX) >= 75 && Math.abs(deltaX) > Math.abs(deltaY) * 2.2) {
         if (deltaX < 0) {
           // Swipe Left -> Next Tab
           this.switchAdjacentTab(1);

@@ -1,120 +1,115 @@
 /* ==========================================================================
    Français DELF Studio — Apple iOS Inspired Luxury & Cute Design System
-   Human Interface Guidelines (HIG) + French Pastel Aesthetics
+   Human Interface Guidelines (HIG) + Modern French Chic Aesthetics
    ========================================================================== */
 
 :root {
-  /* Apple System & French Pastel Palette (Lively & Cute Aesthetic) */
+  /* Apple System & French Accent Palette */
   --primary: #007AFF;
   --primary-hover: #0062CC;
-  --primary-light: rgba(0, 122, 255, 0.12);
+  --primary-light: rgba(0, 122, 255, 0.1);
   --primary-rgb: 0, 122, 255;
 
-  --accent-lavender: #8B5CF6;
-  --accent-lavender-light: rgba(139, 92, 246, 0.14);
-  --accent-rose: #EC4899;
-  --accent-rose-light: rgba(236, 72, 153, 0.14);
-  --accent-mint: #10B981;
-  --accent-mint-light: rgba(16, 185, 129, 0.14);
-  --accent-amber: #F59E0B;
-  --accent-amber-light: rgba(245, 158, 11, 0.14);
-  --accent-coral: #F97316;
-  --accent-coral-light: rgba(249, 115, 22, 0.14);
-  --accent-sky: #0EA5E9;
-  --accent-sky-light: rgba(14, 165, 233, 0.14);
+  --accent-lavender: #7C3AED;
+  --accent-lavender-light: rgba(124, 58, 237, 0.1);
+  --accent-rose: #E11D48;
+  --accent-rose-light: rgba(225, 29, 72, 0.1);
+  --accent-pink: #EC4899;
+  --accent-pink-light: rgba(236, 72, 153, 0.1);
+  --accent-mint: #059669;
+  --accent-mint-light: rgba(5, 150, 105, 0.1);
+  --accent-amber: #D97706;
+  --accent-amber-light: rgba(217, 119, 6, 0.1);
+  --accent-sky: #0284C7;
+  --accent-sky-light: rgba(2, 132, 199, 0.1);
 
-  /* iOS Surface Materials (Light — Dreamy French Pastel Aurora Mesh) */
-  --bg-app: #FBF8FD;
-  --bg-mesh: radial-gradient(circle at 6% 8%, rgba(255, 158, 181, 0.45) 0%, transparent 42%),
-             radial-gradient(circle at 94% 10%, rgba(196, 181, 253, 0.42) 0%, transparent 46%),
-             radial-gradient(circle at 50% 45%, rgba(186, 230, 253, 0.35) 0%, transparent 52%),
-             radial-gradient(circle at 10% 88%, rgba(167, 243, 208, 0.38) 0%, transparent 44%),
-             radial-gradient(circle at 90% 86%, rgba(254, 215, 170, 0.42) 0%, transparent 46%),
-             radial-gradient(circle at 50% 92%, rgba(253, 164, 175, 0.32) 0%, transparent 50%),
-             #FBF8FD;
-  --bg-subtle: rgba(243, 240, 255, 0.75);
+  /* iOS Surface Materials (Light — Soothing, Elegant & Clean) */
+  --bg-app: #F8F9FD;
+  --bg-mesh: radial-gradient(circle at 12% 10%, rgba(255, 182, 193, 0.22) 0%, transparent 45%),
+             radial-gradient(circle at 88% 12%, rgba(216, 180, 254, 0.22) 0%, transparent 48%),
+             radial-gradient(circle at 50% 45%, rgba(186, 230, 253, 0.18) 0%, transparent 50%),
+             #F8F9FD;
+  --bg-subtle: #F1F3F9;
   --card-bg: rgba(255, 255, 255, 0.88);
   --card-solid: #FFFFFF;
-  --card-hover: rgba(255, 255, 255, 0.98);
-  --border-color: rgba(168, 85, 247, 0.16);
-  --border-focus: rgba(0, 122, 255, 0.5);
+  --card-hover: #FFFFFF;
+  --border-color: rgba(0, 0, 0, 0.07);
+  --border-focus: rgba(0, 122, 255, 0.4);
 
-  /* Typography */
-  --text-main: #1C1929;
-  --text-muted: #7C7A8E;
-  --text-secondary: #474459;
+  /* Typography (High legibility, elegant weights) */
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --text-secondary: #374151;
   --text-inverse: #FFFFFF;
 
   /* Status Colors */
   --success: #10B981;
-  --success-light: rgba(16, 185, 129, 0.15);
+  --success-light: rgba(16, 185, 129, 0.12);
   --warning: #F59E0B;
-  --warning-light: rgba(245, 158, 11, 0.15);
+  --warning-light: rgba(245, 158, 11, 0.12);
   --danger: #EF4444;
-  --danger-light: rgba(239, 68, 68, 0.15);
+  --danger-light: rgba(239, 68, 68, 0.12);
 
-  /* iOS Depth & Shadow System (Luminous Pastel Halo) */
-  --shadow-sm: 0 4px 16px rgba(168, 85, 247, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 12px 36px rgba(168, 85, 247, 0.13), 0 3px 8px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 24px 54px rgba(168, 85, 247, 0.18), 0 6px 16px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 14px 34px rgba(0, 122, 255, 0.35);
+  /* Apple Natural Depth & Shadow System */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 10px 28px rgba(0, 122, 255, 0.28);
 
   /* Apple Squircle Radius */
   --radius-xs: 6px;
   --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --radius-xl: 28px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
   --radius-pill: 9999px;
 
   /* Apple Easing & Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 0.18s var(--ease-out);
-  --transition-normal: 0.28s var(--ease-out);
-  --transition-smooth: 0.45s var(--ease-out);
+  --transition-fast: 0.16s var(--ease-out);
+  --transition-normal: 0.25s var(--ease-out);
+  --transition-smooth: 0.4s var(--ease-out);
 
   /* Font Stack */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Inter", -system-ui, sans-serif;
 }
 
 [data-theme="dark"] {
-  /* iOS Surface Materials (Dark — Parisian Midnight Nebula & Bioluminescent Glow) */
-  --bg-app: #0A0A16;
-  --bg-mesh: radial-gradient(circle at 10% 8%, rgba(244, 63, 94, 0.32) 0%, transparent 46%),
-             radial-gradient(circle at 90% 12%, rgba(139, 92, 246, 0.36) 0%, transparent 48%),
-             radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.26) 0%, transparent 52%),
-             radial-gradient(circle at 15% 88%, rgba(16, 185, 129, 0.24) 0%, transparent 45%),
-             radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.22) 0%, transparent 46%),
-             #0A0A16;
-  --bg-subtle: rgba(28, 26, 46, 0.85);
-  --card-bg: rgba(22, 21, 38, 0.85);
-  --card-solid: #161528;
-  --card-hover: rgba(32, 30, 54, 0.95);
-  --border-color: rgba(255, 255, 255, 0.15);
-  --border-focus: rgba(56, 189, 248, 0.65);
+  /* iOS Surface Materials (Dark — Parisian Midnight Velvet) */
+  --bg-app: #0B0E17;
+  --bg-mesh: radial-gradient(circle at 10% 8%, rgba(225, 29, 72, 0.15) 0%, transparent 46%),
+             radial-gradient(circle at 90% 12%, rgba(124, 58, 237, 0.18) 0%, transparent 48%),
+             radial-gradient(circle at 50% 50%, rgba(2, 132, 199, 0.12) 0%, transparent 52%),
+             #0B0E17;
+  --bg-subtle: #161A26;
+  --card-bg: rgba(22, 26, 38, 0.82);
+  --card-solid: #161A26;
+  --card-hover: #1C2130;
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-focus: rgba(56, 189, 248, 0.5);
 
-  --text-main: #F8F7FC;
-  --text-muted: #9E9DB5;
-  --text-secondary: #C8C7DC;
+  --text-main: #F9FAFB;
+  --text-muted: #9CA3AF;
+  --text-secondary: #D1D5DB;
   --text-inverse: #000000;
 
   --primary: #38BDF8;
   --primary-hover: #60A5FA;
-  --primary-light: rgba(56, 189, 248, 0.22);
+  --primary-light: rgba(56, 189, 248, 0.18);
   --primary-rgb: 56, 189, 248;
 
-  --shadow-sm: 0 4px 18px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 14px 40px rgba(0, 0, 0, 0.58);
-  --shadow-lg: 0 28px 68px rgba(0, 0, 0, 0.75);
-  --shadow-glow: 0 14px 36px rgba(56, 189, 248, 0.45);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 10px 30px rgba(56, 189, 248, 0.35);
 
-  --accent-lavender-light: rgba(168, 85, 247, 0.28);
-  --accent-rose-light: rgba(244, 63, 94, 0.28);
-  --accent-mint-light: rgba(16, 185, 129, 0.28);
-  --accent-amber-light: rgba(245, 158, 11, 0.28);
-  --success-light: rgba(16, 185, 129, 0.28);
-  --warning-light: rgba(245, 158, 11, 0.28);
-  --danger-light: rgba(239, 68, 68, 0.28);
+  --accent-lavender-light: rgba(124, 58, 237, 0.22);
+  --accent-rose-light: rgba(225, 29, 72, 0.22);
+  --accent-mint-light: rgba(5, 150, 105, 0.22);
+  --accent-amber-light: rgba(217, 119, 6, 0.22);
+  --success-light: rgba(16, 185, 129, 0.22);
+  --warning-light: rgba(245, 158, 11, 0.22);
+  --danger-light: rgba(239, 68, 68, 0.22);
 }
 
 /* ================= Base Styles & Reset ================= */
@@ -144,7 +139,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Ambient Glowing Background Orbs (Lively French Pastel Aura) */
+/* Ambient Glowing Background Atmosphere (Subtle & Elegant) */
 .ambient-glow-wrapper {
   position: fixed;
   inset: 0;
@@ -156,89 +151,60 @@ body {
 .ambient-glow-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(75px);
-  opacity: 0.62;
+  filter: blur(140px);
+  opacity: 0.22;
   will-change: transform;
 }
 
 .orb-1 {
-  width: 480px;
-  height: 480px;
-  top: -80px;
-  left: -100px;
-  background: radial-gradient(circle, rgba(255, 99, 146, 0.65) 0%, rgba(244, 114, 182, 0.35) 45%, transparent 70%);
-  animation: floatOrb1 20s ease-in-out infinite alternate;
+  width: 520px;
+  height: 520px;
+  top: -100px;
+  left: -80px;
+  background: radial-gradient(circle, #FF85A2 0%, rgba(255, 133, 162, 0.4) 50%, transparent 70%);
+  animation: floatOrb1 24s ease-in-out infinite alternate;
 }
 
 .orb-2 {
-  width: 540px;
-  height: 540px;
-  top: 5%;
-  right: -120px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.6) 0%, rgba(99, 102, 241, 0.3) 45%, transparent 70%);
-  animation: floatOrb2 25s ease-in-out infinite alternate;
+  width: 560px;
+  height: 560px;
+  top: 10%;
+  right: -100px;
+  background: radial-gradient(circle, #A78BFA 0%, rgba(167, 139, 250, 0.4) 50%, transparent 70%);
+  animation: floatOrb2 28s ease-in-out infinite alternate;
 }
 
 .orb-3 {
-  width: 460px;
-  height: 460px;
-  bottom: 8%;
-  left: 8%;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.55) 0%, rgba(52, 211, 153, 0.28) 45%, transparent 70%);
-  animation: floatOrb3 22s ease-in-out infinite alternate;
+  width: 480px;
+  height: 480px;
+  bottom: 10%;
+  left: 10%;
+  background: radial-gradient(circle, #38BDF8 0%, rgba(56, 189, 248, 0.4) 50%, transparent 70%);
+  animation: floatOrb3 26s ease-in-out infinite alternate;
 }
 
-.orb-4 {
-  width: 440px;
-  height: 440px;
-  bottom: -60px;
-  right: 5%;
-  background: radial-gradient(circle, rgba(251, 146, 60, 0.58) 0%, rgba(244, 63, 94, 0.28) 45%, transparent 70%);
-  animation: floatOrb4 24s ease-in-out infinite alternate;
-}
-
-.orb-5 {
-  width: 380px;
-  height: 380px;
-  top: 42%;
-  left: 45%;
-  background: radial-gradient(circle, rgba(250, 204, 21, 0.45) 0%, rgba(251, 191, 36, 0.2) 45%, transparent 70%);
-  animation: floatOrb5 28s ease-in-out infinite alternate;
+.orb-4, .orb-5 {
+  display: none; /* Cleaner, lighter, more disciplined atmosphere */
 }
 
 [data-theme="dark"] .ambient-glow-orb {
-  opacity: 0.42;
-  filter: blur(85px);
+  opacity: 0.16;
+  filter: blur(160px);
 }
 
 @keyframes floatOrb1 {
   0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(50px, 60px) scale(1.12); }
-  100% { transform: translate(-30px, 35px) scale(0.92); }
+  100% { transform: translate(40px, 40px) scale(1.08); }
 }
 
 @keyframes floatOrb2 {
   0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-60px, 50px) scale(1.15); }
-  100% { transform: translate(30px, -40px) scale(0.95); }
+  100% { transform: translate(-40px, 35px) scale(1.06); }
 }
 
 @keyframes floatOrb3 {
   0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(45px, -55px) scale(1.1); }
-  100% { transform: translate(-35px, 20px) scale(0.9); }
-}
-
-@keyframes floatOrb4 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-50px, -45px) scale(1.14); }
-  100% { transform: translate(40px, 30px) scale(0.94); }
-}
-
-@keyframes floatOrb5 {
-  0% { transform: translate(0, 0) scale(0.95); }
-  50% { transform: translate(-40px, 60px) scale(1.18); }
-  100% { transform: translate(50px, -30px) scale(1.02); }
+  100% { transform: translate(30px, -35px) scale(1.05); }
 }
 
 /* Custom iOS Scrollbar */
