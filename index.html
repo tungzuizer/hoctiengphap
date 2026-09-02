@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Français DELF Studio — Luyện Tiếng Pháp A1 → DELF B1</title>
   <meta name="description" content="Ứng dụng luyện thi tiếng Pháp A1 - DELF B1 với AI theo chuẩn iOS HIG, hỗ trợ đa người dùng, chấm điểm theo Grille DELF B1 chính thức và kho đề chuẩn RFI/TV5MONDE.">
 
@@ -78,23 +78,33 @@
       </div>
     </div>
 
-    <!-- Navigation Tabs (iOS Segmented Control) -->
-    <div class="nav-tabs-wrapper">
+    <!-- Navigation Tabs (iOS Segmented Control on Desktop / Fixed Tab Bar on Mobile) -->
+    <div class="nav-tabs-wrapper" id="nav-tabs-wrapper">
       <nav class="nav-tabs" role="tablist" id="main-nav-tabs">
         <button class="nav-tab active" data-tab="speaking">
-          <span class="tab-icon-slot" data-icon="mic"></span> Luyện Nói (Expression Orale)
+          <span class="tab-icon-slot" data-icon="mic"></span>
+          <span class="tab-label">Luyện Nói</span>
+          <span class="tab-sublabel">Expression Orale</span>
         </button>
         <button class="nav-tab" data-tab="reading">
-          <span class="tab-icon-slot" data-icon="bookOpen"></span> Luyện Đọc (Compréhension Écrite)
+          <span class="tab-icon-slot" data-icon="bookOpen"></span>
+          <span class="tab-label">Luyện Đọc</span>
+          <span class="tab-sublabel">Compréhension Écrite</span>
         </button>
         <button class="nav-tab" data-tab="listening">
-          <span class="tab-icon-slot" data-icon="headphones"></span> Luyện Nghe (Compréhension Orale)
+          <span class="tab-icon-slot" data-icon="headphones"></span>
+          <span class="tab-label">Luyện Nghe</span>
+          <span class="tab-sublabel">Compréhension Orale</span>
         </button>
         <button class="nav-tab" data-tab="seedbank">
-          <span class="tab-icon-slot" data-icon="database"></span> Ngân Hàng Đề Thật
+          <span class="tab-icon-slot" data-icon="database"></span>
+          <span class="tab-label">Kho Đề Thật</span>
+          <span class="tab-sublabel">RFI & TV5</span>
         </button>
         <button class="nav-tab" data-tab="progress">
-          <span class="tab-icon-slot" data-icon="chart"></span> Tiến Độ & Báo Cáo
+          <span class="tab-icon-slot" data-icon="chart"></span>
+          <span class="tab-label">Tiến Độ</span>
+          <span class="tab-sublabel">DELF /25</span>
         </button>
       </nav>
     </div>
