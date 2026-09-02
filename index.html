@@ -55,30 +55,18 @@
   <!-- Main Container -->
   <main class="app-container">
 
-    <!-- Cute Personalized Greeting Banner for Trang -->
-    <div class="welcome-banner" id="welcome-banner">
-      <div class="welcome-left">
-        <div class="welcome-avatar-wrap">
-          <span id="welcome-avatar-icon"></span>
-          <span class="welcome-avatar-status"></span>
-        </div>
-        <div class="welcome-content">
-          <h2 class="welcome-title">
-            <span>Bonjour, <strong id="welcome-profile-name">Trang</strong></span>
-            <span class="welcome-sparkle-slot" data-icon="sparkles"></span>
-          </h2>
-          <p class="welcome-sub" id="welcome-quote">Chaque jour est une nouvelle chance d'apprendre avec le sourire !</p>
+    <!-- Personalized Greeting Header -->
+    <div class="welcome-bar" id="welcome-banner">
+      <div class="welcome-bar-left">
+        <span class="welcome-badge-heart" data-icon="sparkles"></span>
+        <div class="welcome-bar-text">
+          <span class="welcome-bar-greeting">Bonjour, <strong id="welcome-profile-name">Trang</strong></span>
+          <span class="welcome-bar-sub" id="welcome-quote">Chaque jour est une nouvelle chance d'apprendre !</span>
         </div>
       </div>
-      <div class="welcome-chips">
-        <div class="welcome-chip chip-level">
-          <span class="chip-icon-slot" data-icon="crown"></span>
-          <span id="welcome-profile-level-badge">Objectif DELF B1</span>
-        </div>
-        <div class="welcome-chip chip-streak">
-          <span class="chip-icon-slot" data-icon="heart"></span>
-          <span id="welcome-session-count">0 buổi học</span>
-        </div>
+      <div class="welcome-bar-chips">
+        <span class="welcome-pill pill-target" id="welcome-profile-level-badge">Objectif B1</span>
+        <span class="welcome-pill pill-streak" id="welcome-session-count">0 buổi</span>
       </div>
     </div>
 
@@ -108,98 +96,65 @@
       </nav>
     </div>
 
-    <!-- ================= TAB 1: LUYỆN NÓI ================= -->
+    <!-- ================= TAB 1: LUYỆN NÓI (CHAT-FIRST EXPERIENCE) ================= -->
     <section class="tab-panel active" id="tab-speaking">
-      <div class="speaking-layout">
+      <div class="speaking-chat-layout">
 
-        <!-- Microphone Hero Card (Apple Siri Aesthetic) -->
-        <div class="mic-hero-card">
-          <div class="mic-button-wrapper">
-            <button class="btn-mic" id="btn-mic-toggle" title="Nhấn để bật micro và nói tiếng Pháp">
-              <span id="mic-icon-slot"></span>
-            </button>
-          </div>
-
-          <!-- Animated Sound Wave Visualizer (when recording) -->
-          <div class="sound-wave-bars hidden" id="sound-wave-bars">
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-
-          <div class="mic-status" id="mic-status-text">
-            Nhấn nút Micro để nói tiếng Pháp (hoặc gõ câu bên dưới)
-          </div>
-
-          <div class="live-transcript-box hidden" id="live-transcript">
-            ...
-          </div>
-
-          <!-- Fallback text input -->
-          <div class="text-fallback-input">
-            <input type="text" class="text-input" id="speaking-text-input" placeholder="Hoặc gõ câu tiếng Pháp ở đây rồi nhấn Enter / Gửi...">
-            <button class="btn-primary" id="btn-send-text">
-              <span id="send-icon-slot"></span> Gửi
-            </button>
-          </div>
-        </div>
-
-        <!-- Gợi ý chủ đề trò chuyện theo ngữ cảnh (Thèmes de conversation) -->
-        <div class="speaking-topics-section">
-          <div class="speaking-topics-header">
-            <span class="topics-title-badge">
-              <span class="badge-sparkle-cute" data-icon="sparkles"></span>
-              <strong>Chủ đề hội thoại:</strong>
-            </span>
-          </div>
-          <div class="speaking-topics-grid" id="speaking-topics-container">
+        <!-- Top Controls: Topic Pills & Quick Actions -->
+        <div class="chat-top-bar">
+          <div class="topics-chips-scroll" id="speaking-topics-container">
             <!-- Dynamically populated by SpeakingModule.renderTopics -->
           </div>
-        </div>
-
-        <!-- Atelier Phonétique (Xưởng Luyện Ngữ Âm & Khẩu Hình Chuẩn) -->
-        <div class="atelier-phonetique-wrapper">
-          <div class="atelier-toggle-bar">
-            <div class="atelier-toggle-info">
-              <span class="badge-sparkle-cute" data-icon="sparkles"></span>
-              <div>
-                <strong style="font-size: 0.95rem; color: var(--text-main); display: block;">Xưởng Ngữ Âm IPA</strong>
-                <span style="font-size: 0.8rem; color: var(--text-muted);">Khẩu hình miệng & mẹo phát âm chuẩn</span>
-              </div>
-            </div>
-            <button class="btn-outline btn-sm" id="btn-toggle-atelier-phonetique">
-              <span class="btn-icon-slot" data-icon="sparkles"></span> Mở Xưởng
+          <div class="chat-top-actions">
+            <button class="btn-chat-action btn-action-primary" id="btn-evaluate-speaking" title="Chấm điểm DELF B1 theo chuẩn France Éducation">
+              <span class="btn-icon-slot" data-icon="award"></span> Chấm điểm DELF
+            </button>
+            <button class="btn-chat-action" id="btn-toggle-atelier-phonetique" title="Mở Xưởng Ngữ Âm IPA">
+              <span class="btn-icon-slot" data-icon="sparkles"></span> Xưởng IPA
+            </button>
+            <button class="btn-chat-action btn-action-icon" id="btn-clear-conversation" title="Xóa hội thoại">
+              <span class="btn-icon-slot" data-icon="trash"></span>
             </button>
           </div>
-
-          <div class="atelier-phonetique-section hidden" id="atelier-phonetique-section">
-            <div class="atelier-grid" id="atelier-phonetique-container">
-              <!-- Dynamically populated by SpeakingModule.renderAtelierPhonétique -->
-            </div>
-          </div>
         </div>
 
-        <!-- Conversation Stream Section (iMessage Aesthetic) -->
-        <div class="conversation-section">
-          <div class="conversation-header">
-            <h3><span class="header-icon-slot" data-icon="messageSquare"></span> Hội thoại</h3>
-            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-              <button class="btn-primary btn-sm" id="btn-evaluate-speaking">
-                <span class="btn-icon-slot" data-icon="award"></span> Chấm điểm DELF (/25)
-              </button>
-              <button class="btn-outline btn-sm" id="btn-clear-conversation">
-                <span class="btn-icon-slot" data-icon="trash"></span> Xóa
-              </button>
-            </div>
-          </div>
-
-          <!-- Message bubbles container -->
-          <div class="conversation-container" id="conversation-container">
-            <!-- Dynamically populated by SpeakingModule -->
+        <!-- Atelier Phonétique (Collapsible Drawer) -->
+        <div class="atelier-phonetique-section hidden" id="atelier-phonetique-section">
+          <div class="atelier-grid" id="atelier-phonetique-container">
+            <!-- Dynamically populated by SpeakingModule.renderAtelierPhonétique -->
           </div>
         </div>
 
         <!-- Official DELF Evaluation Result Section -->
         <div id="speaking-eval-result" class="hidden">
           <!-- Dynamically populated by SpeakingModule.renderEvaluationResult -->
+        </div>
+
+        <!-- Conversation Stream Section (The Main Hero View) -->
+        <div class="conversation-container" id="conversation-container">
+          <!-- Dynamically populated by SpeakingModule -->
+        </div>
+
+        <!-- Unified Modern Chat Input Dock (iMessage / Siri Style) -->
+        <div class="chat-dock-container">
+          <!-- Voice feedback status & live transcript -->
+          <div class="dock-voice-status">
+            <div class="sound-wave-bars hidden" id="sound-wave-bars">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <span class="mic-status hidden" id="mic-status-text"></span>
+            <div class="live-transcript-box hidden" id="live-transcript">...</div>
+          </div>
+
+          <div class="chat-dock-bar">
+            <button class="btn-dock-mic" id="btn-mic-toggle" title="Nhấn để nói tiếng Pháp">
+              <span id="mic-icon-slot"></span>
+            </button>
+            <input type="text" class="chat-dock-input" id="speaking-text-input" placeholder="Nói vào micro hoặc gõ tiếng Pháp..." autocomplete="off">
+            <button class="btn-dock-send" id="btn-send-text" title="Gửi câu thoại">
+              <span id="send-icon-slot"></span>
+            </button>
+          </div>
         </div>
 
       </div>

@@ -51,9 +51,9 @@ const App = {
     const settingsSlot = document.getElementById('settings-icon-slot');
     if (settingsSlot) settingsSlot.innerHTML = window.Icons.get('settings', '', 18);
 
-    // Mic Slot
+    // Mic Slot (Dock Input)
     const micSlot = document.getElementById('mic-icon-slot');
-    if (micSlot) micSlot.innerHTML = window.Icons.get('mic', '', 36);
+    if (micSlot) micSlot.innerHTML = window.Icons.get('mic', '', 20);
 
     // Send Slot
     const sendSlot = document.getElementById('send-icon-slot');

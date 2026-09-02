@@ -74,8 +74,8 @@ const SpeakingModule = {
           atelierSection.classList.toggle('hidden');
           const isHidden = atelierSection.classList.contains('hidden');
           toggleAtelierBtn.innerHTML = isHidden
-            ? `${window.Icons.get('sparkles', '', 14)} Mở Xưởng Luyện Ngữ Âm (Atelier Phonétique)`
-            : `${window.Icons.get('sparkles', '', 14)} Thu gọn Xưởng Ngữ Âm`;
+            ? `${window.Icons.get('sparkles', '', 14)} Xưởng IPA`
+            : `${window.Icons.get('sparkles', '', 14)} Đóng Xưởng`;
         }
       });
     }
@@ -500,16 +500,12 @@ const SpeakingModule = {
 
     const topics = window.CONFIG.SPEAKING_TOPICS;
     container.innerHTML = topics.map(t => {
-      const iconSvg = window.Icons && window.Icons.get ? window.Icons.get(t.icon, '', 16) : '';
+      const iconSvg = window.Icons && window.Icons.get ? window.Icons.get(t.icon, '', 14) : '';
       return `
-        <div class="topic-card-chip" onclick="SpeakingModule.selectTopic('${t.id}')">
-          <div class="topic-chip-top">
-            <span class="topic-chip-icon">${iconSvg}</span>
-            <span class="badge-topic">${this.escapeHTML(t.badge)}</span>
-          </div>
-          <div class="topic-chip-title">${this.escapeHTML(t.label)}</div>
-          <div class="topic-chip-starter">${this.escapeHTML(t.starterVi)}</div>
-        </div>
+        <button class="topic-chip-pill" onclick="SpeakingModule.selectTopic('${t.id}')" title="${this.escapeHTML(t.starterVi)}">
+          <span class="topic-chip-icon">${iconSvg}</span>
+          <span class="topic-chip-name">${this.escapeHTML(t.label)}</span>
+        </button>
       `;
     }).join('');
   },
@@ -524,10 +520,10 @@ const SpeakingModule = {
       textInput.focus();
     }
 
-    // Scroll to input / mic hero card smoothly
-    const inputCard = document.querySelector('.mic-hero-card');
-    if (inputCard && inputCard.scrollIntoView) {
-      inputCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Scroll to input dock smoothly
+    const inputDock = document.querySelector('.chat-dock-container');
+    if (inputDock && inputDock.scrollIntoView) {
+      inputDock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   },
 
