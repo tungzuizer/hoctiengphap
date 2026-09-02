@@ -143,6 +143,28 @@
           </div>
         </div>
 
+        <!-- Atelier Phonétique (Xưởng Luyện Ngữ Âm & Khẩu Hình Chuẩn) -->
+        <div class="atelier-phonetique-wrapper">
+          <div class="atelier-toggle-bar">
+            <div class="atelier-toggle-info">
+              <span class="badge-sparkle-cute" data-icon="sparkles"></span>
+              <div>
+                <strong style="font-size: 0.98rem; color: var(--text-main); display: block;">Atelier Phonétique (Xưởng Luyện Phát Âm Chuyên Sâu)</strong>
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Mẹo khẩu hình chuẩn IPA, cặp âm [y]/[u], 4 âm mũi, âm R họng & nối âm bắt buộc</span>
+              </div>
+            </div>
+            <button class="btn-outline btn-sm" id="btn-toggle-atelier-phonetique">
+              <span class="btn-icon-slot" data-icon="sparkles"></span> Mở Xưởng Ngữ Âm
+            </button>
+          </div>
+
+          <div class="atelier-phonetique-section hidden" id="atelier-phonetique-section">
+            <div class="atelier-grid" id="atelier-phonetique-container">
+              <!-- Dynamically populated by SpeakingModule.renderAtelierPhonétique -->
+            </div>
+          </div>
+        </div>
+
         <!-- Conversation Stream Section (iMessage Aesthetic) -->
         <div class="conversation-section">
           <div class="conversation-header">

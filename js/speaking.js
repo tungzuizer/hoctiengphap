@@ -1,16 +1,19 @@
 /**
- * SpeakingModule - Expression Orale & DELF Speaking Assessment Grille
- * Integrates Web Speech Recognition, French TTS, and DELF B1 evaluation
+ * SpeakingModule - Expression Orale, DELF Speaking Assessment & Phonetics Coach
+ * Integrates Web Speech Recognition, French TTS, IPA Phonetic Diagnosis, and Repetition Scorer
  * Styled with Apple iOS Human Interface Guidelines (HIG) & vector SVG icons
  */
 
 const SpeakingModule = {
   conversation: [],
   isProcessing: false,
+  activePracticeTarget: null,
+  audioCtx: null,
 
   init() {
     this.bindEvents();
     this.loadHistory();
+    this.renderAtelierPhonétique();
   },
 
   loadHistory() {
@@ -24,6 +27,7 @@ const SpeakingModule = {
     const textInput = document.getElementById('speaking-text-input');
     const evalBtn = document.getElementById('btn-evaluate-speaking');
     const clearBtn = document.getElementById('btn-clear-conversation');
+    const toggleAtelierBtn = document.getElementById('btn-toggle-atelier-phonetique');
 
     if (micBtn) {
       micBtn.addEventListener('click', () => this.toggleMic());
@@ -56,7 +60,21 @@ const SpeakingModule = {
           this.conversation = [];
           window.StateManager.clearConversationHistory();
           this.renderConversation();
-          document.getElementById('speaking-eval-result').classList.add('hidden');
+          const evalResult = document.getElementById('speaking-eval-result');
+          if (evalResult) evalResult.classList.add('hidden');
+        }
+      });
+    }
+
+    if (toggleAtelierBtn) {
+      toggleAtelierBtn.addEventListener('click', () => {
+        const atelierSection = document.getElementById('atelier-phonetique-section');
+        if (atelierSection) {
+          atelierSection.classList.toggle('hidden');
+          const isHidden = atelierSection.classList.contains('hidden');
+          toggleAtelierBtn.innerHTML = isHidden
+            ? `${window.Icons.get('sparkles', '', 14)} Mở Xưởng Luyện Ngữ Âm (Atelier Phonétique)`
+            : `${window.Icons.get('sparkles', '', 14)} Thu gọn Xưởng Ngữ Âm`;
         }
       });
     }
@@ -141,7 +159,9 @@ const SpeakingModule = {
       timestamp: new Date().toISOString(),
       userText: frenchText,
       frenchReply: '...',
-      feedbackVi: 'Đang phân tích và tạo phản hồi...'
+      feedbackVi: 'Đang phân tích ngữ pháp, từ vựng và ngữ âm phát âm...',
+      phoneticsRaw: '',
+      phonetics: []
     };
 
     this.conversation.push(newTurn);
@@ -155,9 +175,11 @@ const SpeakingModule = {
     try {
       const response = await window.AIService.chatWithTutor(frenchText, this.conversation.slice(0, -1), level);
 
-      // Update turn
+      // Update turn with 3 components: French reply, grammar feedback, and phonetics diagnostic
       newTurn.frenchReply = response.frenchReply;
       newTurn.feedbackVi = response.feedbackVi;
+      newTurn.phoneticsRaw = response.phoneticsRaw || '';
+      newTurn.phonetics = response.phonetics || [];
 
       // Save history
       window.StateManager.saveConversationHistory(this.conversation);
@@ -194,46 +216,342 @@ const SpeakingModule = {
       return;
     }
 
-    container.innerHTML = this.conversation.map((turn) => `
-      <div class="chat-message-group" data-id="${turn.id}">
-        <!-- User bubble (iOS Blue) -->
-        <div class="user-bubble">
-          <div class="bubble-header">
-            <span style="font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
-              ${window.Icons.get('user', '', 12)} Bạn
-            </span>
-            <span class="bubble-time">${new Date(turn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-          </div>
-          <div class="bubble-text">${this.escapeHTML(turn.userText)}</div>
-        </div>
-
-        <!-- Tutor response (Frosted Glass Card) -->
-        <div class="tutor-bubble">
-          <div class="bubble-header">
-            <span class="tutor-badge-title">
-              ${window.Icons.get('frenchCockade', '', 15)} Giáo viên AI
-            </span>
-            <button class="btn-icon-speak" onclick="window.SpeechService.speak('${this.escapeQuotes(turn.frenchReply)}')">
-              ${window.Icons.get('volume', '', 13)} Nghe lại
-            </button>
-          </div>
-          <div class="bubble-text french-highlight">${this.escapeHTML(turn.frenchReply)}</div>
-
-          <!-- Feedback note card -->
-          <div class="feedback-card">
-            <div class="feedback-title">
-              ${window.Icons.get('lightbulb', '', 15)} Nhận xét & Chữa lỗi:
+    container.innerHTML = this.conversation.map((turn, index) => {
+      // Build Phonetics Section if available
+      let phoneticsHTML = '';
+      if (turn.phonetics && turn.phonetics.length > 0) {
+        phoneticsHTML = `
+          <div class="phonetics-diagnostic-card">
+            <div class="phonetics-header">
+              <span class="phonetics-badge-title">
+                ${window.Icons.get('sparkles', '', 14)} Chữa phát âm & Ngữ âm (Phonétique):
+              </span>
+              <span class="phonetics-sub">Phiên âm IPA & Mẹo khẩu hình chuẩn</span>
             </div>
-            <div class="feedback-content">${this.escapeHTML(turn.feedbackVi)}</div>
+            <div class="phonetics-items-grid">
+              ${turn.phonetics.map((p, pIdx) => {
+                const uniquePracticeId = `practice_${turn.id}_${pIdx}`;
+                const wordToTest = p.word || turn.userText;
+                return `
+                  <div class="phonetic-word-item">
+                    <div class="phonetic-word-top">
+                      <div class="phonetic-word-name">
+                        <strong>${this.escapeHTML(p.word || 'Ngữ âm')}</strong>
+                        ${p.ipa ? `<span class="ipa-tag">${this.escapeHTML(p.ipa)}</span>` : ''}
+                      </div>
+                      <div class="phonetic-actions">
+                        ${p.word ? `
+                          <button class="btn-sound-mini" onclick="window.SpeechService.speak('${this.escapeQuotes(p.word)}', { rate: 0.85 })" title="Nghe người Pháp phát âm mẫu chậm">
+                            ${window.Icons.get('volume', '', 12)} Nghe mẫu
+                          </button>
+                          <button class="btn-record-mini" onclick="SpeakingModule.startWordPractice('${this.escapeQuotes(p.word)}', '${uniquePracticeId}')" title="Luyện đọc lại từ này để AI chấm điểm">
+                            ${window.Icons.get('mic', '', 12)} Luyện nói
+                          </button>
+                        ` : ''}
+                      </div>
+                    </div>
+                    <div class="phonetic-tip-text">
+                      ${this.escapeHTML(p.tip)}
+                    </div>
+                    <!-- Live Practice Feedback Slot -->
+                    <div id="${uniquePracticeId}" class="practice-result-slot hidden"></div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      } else if (turn.phoneticsRaw) {
+        phoneticsHTML = `
+          <div class="phonetics-diagnostic-card">
+            <div class="phonetics-header">
+              <span class="phonetics-badge-title">
+                ${window.Icons.get('sparkles', '', 14)} Chữa phát âm & Ngữ âm (Phonétique):
+              </span>
+            </div>
+            <div class="phonetic-tip-text" style="margin-top: 0.4rem; line-height: 1.5;">
+              ${this.escapeHTML(turn.phoneticsRaw)}
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="chat-message-group" data-id="${turn.id}">
+          <!-- User bubble (iOS Blue) -->
+          <div class="user-bubble">
+            <div class="bubble-header">
+              <span style="font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+                ${window.Icons.get('user', '', 12)} Bạn
+              </span>
+              <span class="bubble-time">${new Date(turn.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+            <div class="bubble-text">${this.escapeHTML(turn.userText)}</div>
+            <!-- Quick audio playback of what user spoke -->
+            <div style="margin-top: 0.45rem; display: flex; justify-content: flex-end;">
+              <button class="btn-user-listen" onclick="window.SpeechService.speak('${this.escapeQuotes(turn.userText)}', { rate: 0.85 })" title="Nghe lại phát âm chuẩn tiếng Pháp của câu bạn vừa nói">
+                ${window.Icons.get('volume', '', 11)} Nghe phát âm mẫu chuẩn
+              </button>
+            </div>
+          </div>
+
+          <!-- Tutor response (Frosted Glass Card) -->
+          <div class="tutor-bubble">
+            <div class="bubble-header">
+              <span class="tutor-badge-title">
+                ${window.Icons.get('frenchCockade', '', 15)} Giáo viên AI
+              </span>
+              <div style="display: flex; gap: 0.35rem;">
+                <button class="btn-icon-speak" onclick="window.SpeechService.speak('${this.escapeQuotes(turn.frenchReply)}', { rate: 0.85 })" title="Nghe phát âm chậm 0.85x">
+                  ${window.Icons.get('volume', '', 12)} 0.85x
+                </button>
+                <button class="btn-icon-speak" onclick="window.SpeechService.speak('${this.escapeQuotes(turn.frenchReply)}', { rate: 1.0 })" title="Nghe tốc độ bình thường">
+                  ${window.Icons.get('volume', '', 12)} 1.0x
+                </button>
+              </div>
+            </div>
+            <div class="bubble-text french-highlight">${this.escapeHTML(turn.frenchReply)}</div>
+
+            <!-- Feedback note card (Grammar & Lexique) -->
+            <div class="feedback-card">
+              <div class="feedback-title">
+                ${window.Icons.get('lightbulb', '', 15)} Nhận xét Ngữ pháp & Từ vựng:
+              </div>
+              <div class="feedback-content">${this.escapeHTML(turn.feedbackVi)}</div>
+            </div>
+
+            <!-- Phonetics & Pronunciation Diagnostic Card -->
+            ${phoneticsHTML}
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     container.scrollTop = container.scrollHeight;
   },
 
-  // Evaluate the entire speaking session with official DELF grid
+  /* ================= Interactive Word Pronunciation Practice & Tester ================= */
+  startWordPractice(targetWord, resultContainerId) {
+    if (!targetWord) return;
+
+    const resultBox = document.getElementById(resultContainerId);
+    if (!resultBox) return;
+
+    resultBox.classList.remove('hidden');
+    resultBox.innerHTML = `
+      <div class="practice-box-listening">
+        <div class="practice-live-wave">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="practice-live-text">
+          Đang lắng nghe... Hãy phát âm rõ: <strong>"${this.escapeHTML(targetWord)}"</strong>
+        </div>
+      </div>
+    `;
+
+    window.SpeechService.startListening({
+      onStart: () => {},
+      onResult: (spokenText) => {
+        const scoreResult = this.evaluatePronunciationMatch(targetWord, spokenText);
+        this.renderPracticeResult(resultBox, targetWord, spokenText, scoreResult);
+        if (scoreResult.score >= 80) {
+          this.playSuccessChime();
+        }
+      },
+      onError: (err) => {
+        resultBox.innerHTML = `
+          <div class="practice-box-result result-error">
+            ${window.Icons.get('alertCircle', '', 14)} Lỗi nhận diện giọng nói: ${err.error || 'Vui lòng thử lại'}.
+          </div>
+        `;
+      }
+    });
+  },
+
+  evaluatePronunciationMatch(targetWord, spokenWord) {
+    const cleanTarget = this.normalizeFrenchText(targetWord);
+    const cleanSpoken = this.normalizeFrenchText(spokenWord);
+
+    // Exact match
+    if (cleanTarget === cleanSpoken || cleanSpoken.includes(cleanTarget) || cleanTarget.includes(cleanSpoken)) {
+      return {
+        score: 100,
+        status: 'Parfait ! (Xuất sắc)',
+        badgeClass: 'score-perfect',
+        stars: '⭐⭐⭐⭐⭐',
+        feedback: 'Phát âm cực kỳ chuẩn xác! Âm sắc rõ ràng và ngữ điệu tự nhiên.'
+      };
+    }
+
+    // Levenshtein similarity distance calculation
+    const distance = this.levenshtein(cleanTarget, cleanSpoken);
+    const maxLen = Math.max(cleanTarget.length, cleanSpoken.length, 1);
+    const similarity = Math.max(0, Math.round((1 - distance / maxLen) * 100));
+
+    if (similarity >= 75) {
+      return {
+        score: similarity,
+        status: 'Très bien ! (Rất tốt)',
+        badgeClass: 'score-good',
+        stars: '⭐⭐⭐⭐',
+        feedback: 'Phát âm rất tốt, người bản xứ hiểu rõ. Hãy tiếp tục giữ vững khẩu hình!'
+      };
+    } else if (similarity >= 45) {
+      return {
+        score: similarity,
+        status: 'Presque ! (Gần chuẩn)',
+        badgeClass: 'score-medium',
+        stars: '⭐⭐⭐',
+        feedback: 'Gần đúng rồi! Hãy chú ý nguyên âm và phụ âm cuối (âm câm hoặc âm mũi).'
+      };
+    } else {
+      return {
+        score: similarity,
+        status: 'À retravailler (Cần thử lại)',
+        badgeClass: 'score-low',
+        stars: '⭐⭐',
+        feedback: 'Chưa chuẩn. Hãy bấm nút "Nghe mẫu" để nghe lại người Pháp đọc rồi thử nói lại nhé!'
+      };
+    }
+  },
+
+  renderPracticeResult(container, targetWord, spokenWord, scoreResult) {
+    container.innerHTML = `
+      <div class="practice-box-result ${scoreResult.badgeClass}">
+        <div class="practice-score-row">
+          <span class="practice-score-badge">${scoreResult.score}% — ${scoreResult.status}</span>
+          <span class="practice-stars">${scoreResult.stars}</span>
+        </div>
+        <div class="practice-details">
+          <div>Từ mục tiêu: <strong>${this.escapeHTML(targetWord)}</strong></div>
+          <div>Bạn đã phát âm: <span class="spoken-echo">"${this.escapeHTML(spokenWord)}"</span></div>
+        </div>
+        <p class="practice-feedback-text">${scoreResult.feedback}</p>
+        <div class="practice-retry-row">
+          <button class="btn-sound-mini" onclick="window.SpeechService.speak('${this.escapeQuotes(targetWord)}', { rate: 0.8 })">
+            ${window.Icons.get('volume', '', 11)} Nghe lại âm mẫu
+          </button>
+          <button class="btn-record-mini" onclick="SpeakingModule.startWordPractice('${this.escapeQuotes(targetWord)}', '${container.id}')">
+            ${window.Icons.get('repeat', '', 11)} Thử phát âm lại
+          </button>
+        </div>
+      </div>
+    `;
+  },
+
+  normalizeFrenchText(text) {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+      .trim();
+  },
+
+  levenshtein(a, b) {
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  },
+
+  playSuccessChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch (e) {}
+  },
+
+  /* ================= Dedicated Atelier Phonétique (Xưởng Luyện Ngữ Âm) ================= */
+  renderAtelierPhonétique() {
+    const container = document.getElementById('atelier-phonetique-container');
+    if (!container) return;
+
+    const presets = (window.CONFIG && window.CONFIG.FRENCH_PHONETICS_PRESETS) || [];
+    if (presets.length === 0) return;
+
+    container.innerHTML = presets.map((preset, index) => {
+      const cardId = `atelier_card_${index}`;
+      return `
+        <div class="atelier-card">
+          <div class="atelier-card-header">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="badge-atelier-category">${this.escapeHTML(preset.category)}</span>
+              <span class="badge-atelier-pill">${this.escapeHTML(preset.badge)}</span>
+            </div>
+            <h4 class="atelier-title">${this.escapeHTML(preset.title)}</h4>
+            <p class="atelier-desc">${this.escapeHTML(preset.description)}</p>
+            <div class="atelier-mouth-guide">
+              <span style="font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 0.3rem;">
+                ${window.Icons.get('lightbulb', '', 14)} Khẩu hình miệng chuẩn:
+              </span>
+              <span>${this.escapeHTML(preset.mouthGuide)}</span>
+            </div>
+          </div>
+
+          <div class="atelier-pairs-list">
+            ${preset.pairs.map((pair, pIdx) => {
+              const pairPracticeId = `atelier_test_${index}_${pIdx}`;
+              return `
+                <div class="atelier-pair-item">
+                  <div class="atelier-pair-left">
+                    <div class="atelier-french-word">
+                      <strong>${this.escapeHTML(pair.french)}</strong>
+                      <span class="ipa-tag">${this.escapeHTML(pair.ipa)}</span>
+                    </div>
+                    <div class="atelier-meaning">${this.escapeHTML(pair.meaning)}</div>
+                    <div class="atelier-compare-note">${this.escapeHTML(pair.compareWith)}</div>
+                  </div>
+                  <div class="atelier-pair-actions">
+                    <button class="btn-sound-mini" onclick="window.SpeechService.speak('${this.escapeQuotes(pair.french)}', { rate: 0.85 })" title="Nghe người Pháp phát âm mẫu chậm">
+                      ${window.Icons.get('volume', '', 12)} Nghe 0.85x
+                    </button>
+                    <button class="btn-record-mini" onclick="SpeakingModule.startWordPractice('${this.escapeQuotes(pair.french)}', '${pairPracticeId}')" title="Thu âm và chấm điểm">
+                      ${window.Icons.get('mic', '', 12)} Luyện đọc
+                    </button>
+                  </div>
+                  <!-- Feedback Slot -->
+                  <div id="${pairPracticeId}" class="practice-result-slot hidden" style="width: 100%; margin-top: 0.5rem;"></div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  /* ================= DELF Assessment Evaluation ================= */
   async evaluateSession() {
     if (this.conversation.length === 0) {
       alert('Vui lòng thực hiện ít nhất 1-2 câu hội thoại trước khi chấm điểm buổi luyện!');
@@ -255,7 +573,7 @@ const SpeakingModule = {
       resultContainer.innerHTML = `
         <div class="eval-loading-card">
           <div class="spinner"></div>
-          <h4>Đang phân tích ngữ pháp, từ vựng và phản xạ theo Grille DELF ${level}...</h4>
+          <h4>Đang phân tích ngữ pháp, từ vựng và ngữ âm theo Grille DELF ${level}...</h4>
           <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.35rem;">France Éducation International — Grille d'évaluation officielle</p>
         </div>
       `;

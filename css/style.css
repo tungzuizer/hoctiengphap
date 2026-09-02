@@ -936,6 +936,450 @@ body {
   line-height: 1.45;
 }
 
+.btn-user-listen {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-user-listen:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(1.02);
+}
+
+/* ================= French Phonetics & Pronunciation Diagnostic Cards ================= */
+.phonetics-diagnostic-card {
+  margin-top: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.07), rgba(139, 92, 246, 0.07));
+  border: 1px solid rgba(236, 72, 153, 0.25);
+  border-radius: var(--radius-lg);
+  font-size: 0.88rem;
+}
+
+.phonetics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px dashed rgba(236, 72, 153, 0.25);
+}
+
+.phonetics-badge-title {
+  font-weight: 700;
+  color: var(--accent-rose);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.phonetics-sub {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.phonetics-items-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.phonetic-word-item {
+  background: var(--card-solid);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  transition: all var(--transition-fast);
+}
+
+.phonetic-word-item:hover {
+  border-color: rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.08);
+}
+
+.phonetic-word-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.phonetic-word-name {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.phonetic-word-name strong {
+  font-size: 0.98rem;
+  color: var(--text-main);
+}
+
+.ipa-tag {
+  background: var(--accent-lavender-light);
+  color: var(--accent-lavender);
+  font-family: 'SF Pro Display', -apple-system, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.phonetic-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-sound-mini {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(0, 122, 255, 0.2);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-sound-mini:hover {
+  background: var(--primary);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-record-mini {
+  background: var(--accent-rose-light);
+  color: var(--accent-rose);
+  border: 1px solid rgba(236, 72, 153, 0.25);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-record-mini:hover {
+  background: var(--accent-rose);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.phonetic-tip-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* Word Practice Slot & Scorer UI */
+.practice-result-slot {
+  margin-top: 0.5rem;
+  animation: fadeIn 0.25s var(--ease-out);
+}
+
+.practice-box-listening {
+  background: var(--bg-subtle);
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.practice-live-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+}
+
+.practice-live-wave span {
+  display: inline-block;
+  width: 3px;
+  height: 6px;
+  background: var(--accent-rose);
+  border-radius: var(--radius-pill);
+  animation: waveBar 0.7s infinite ease-in-out alternate;
+}
+
+.practice-live-wave span:nth-child(2) { animation-delay: 0.15s; }
+.practice-live-wave span:nth-child(3) { animation-delay: 0.3s; }
+.practice-live-wave span:nth-child(4) { animation-delay: 0.45s; }
+
+.practice-live-text {
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
+
+.practice-box-result {
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border-color);
+  font-size: 0.84rem;
+}
+
+.practice-box-result.score-perfect {
+  background: var(--accent-mint-light);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #065f46;
+}
+
+.practice-box-result.score-good {
+  background: var(--primary-light);
+  border-color: rgba(0, 122, 255, 0.35);
+  color: #075985;
+}
+
+.practice-box-result.score-medium {
+  background: var(--accent-amber-light);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #92400e;
+}
+
+.practice-box-result.score-low {
+  background: var(--danger-light);
+  border-color: rgba(255, 59, 48, 0.35);
+  color: var(--danger);
+}
+
+.practice-score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.practice-score-badge {
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+.practice-stars {
+  font-size: 0.8rem;
+}
+
+.practice-details {
+  font-size: 0.82rem;
+  margin-bottom: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.spoken-echo {
+  font-style: italic;
+  font-weight: 600;
+}
+
+.practice-feedback-text {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin-bottom: 0.45rem;
+}
+
+.practice-retry-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* ================= Atelier Phonétique (Xưởng Luyện Ngữ Âm) ================= */
+.atelier-phonetique-wrapper {
+  background: var(--card-bg);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.atelier-toggle-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.atelier-toggle-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.badge-sparkle-cute {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent-rose), var(--accent-lavender));
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.atelier-phonetique-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  animation: fadeIn 0.3s var(--ease-out);
+}
+
+.atelier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.atelier-card {
+  background: var(--card-solid);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.atelier-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(236, 72, 153, 0.4);
+}
+
+.atelier-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.badge-atelier-category {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+.badge-atelier-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--accent-rose-light);
+  color: var(--accent-rose);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+.atelier-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-top: 0.2rem;
+}
+
+.atelier-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.atelier-mouth-guide {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.6), rgba(253, 230, 138, 0.3));
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--text-main);
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.atelier-pairs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.atelier-pair-item {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.atelier-pair-left {
+  flex: 1;
+  min-width: 170px;
+}
+
+.atelier-french-word {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.atelier-french-word strong {
+  font-size: 0.96rem;
+  color: var(--text-main);
+}
+
+.atelier-meaning {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.1rem;
+}
+
+.atelier-compare-note {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 0.1rem;
+}
+
+.atelier-pair-actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
 /* ================= Official DELF B1 Evaluation Scorecard ================= */
 .eval-result-card {
   background: var(--card-bg);

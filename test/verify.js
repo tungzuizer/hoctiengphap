@@ -107,6 +107,7 @@ async function runTests() {
   const tutorReply = await AIService.chatWithTutor('Bonjour, je m\'appelle Tung.', [], 'B1');
   assert.ok(tutorReply.frenchReply, 'Có câu trả lời tiếng Pháp');
   assert.ok(tutorReply.feedbackVi, 'Có nhận xét tiếng Việt');
+  assert.ok(tutorReply.phonetics, 'Có danh sách phân tích ngữ âm phonetics');
 
   const evalResult = await AIService.evaluateSpeakingSession([
     { userText: 'Je voudrais parler de mon travail en France.', frenchReply: 'Très bien, continuez.' }
@@ -127,6 +128,26 @@ async function runTests() {
   assert.strictEqual(listeningEx.questions.length, 3, 'Bài nghe có đủ 3 câu trắc nghiệm');
 
   console.log('  ✅ AIService: Phản xạ hội thoại, chấm điểm Grille DELF B1 (/25) và sinh đề Đọc/Nghe chính xác.');
+
+  // Test 5: French Phonetics & Pronunciation Scorer
+  console.log('\n5. Kiểm tra Hệ thống Sửa Phát Âm & Ngữ Âm Chuyên Sâu (Phonétique & Scorer):');
+  assert.ok(CONFIG.FRENCH_PHONETICS_PRESETS.length >= 5, 'Phải có ít nhất 5 bộ chuyên đề ngữ âm chuẩn');
+  const uPair = CONFIG.FRENCH_PHONETICS_PRESETS.find(p => p.id === 'ph_u_vs_ou');
+  assert.ok(uPair && uPair.mouthGuide, 'Có hướng dẫn khẩu hình cho cặp âm [y] vs [u]');
+
+  // Test Phonetics Parser
+  const samplePhoneticsText = `
+- **tu** (/ty/) : Chu tròn môi như huýt sáo nhưng giữ khẩu hình chữ i, tránh đọc nhầm thành tout /tu/.
+- **restaurant** (/ʁɛstoʁɑ̃/) : Âm mũi an mở miệng rộng, không khép môi tạo âm n/m.
+- liaison : Nối âm bắt buộc với nguyên âm kế tiếp.
+  `;
+  const parsedPhonetics = AIService.parsePhoneticsList(samplePhoneticsText);
+  assert.strictEqual(parsedPhonetics.length, 3, 'Phải parse được 3 mục ngữ âm');
+  assert.strictEqual(parsedPhonetics[0].word, 'tu');
+  assert.strictEqual(parsedPhonetics[0].ipa, '/ty/');
+  assert.ok(parsedPhonetics[0].tip.includes('huýt sáo'));
+
+  console.log('  ✅ Phonétique: Bộ dữ liệu khẩu hình miệng chuẩn và bộ phân tích IPA parsing hoạt động chính xác.');
 
   console.log('\n✨ TẤT CẢ CÁC BÀI KIỂM THỬ ĐỀU ĐÃ ĐẠT (100% PASS)!');
 }

@@ -147,21 +147,27 @@ const AIService = {
     }
   },
 
-  // 1. Module Luyện Nói: Trò chuyện với giáo viên bản ngữ + Nhận xét lỗi
+  // 1. Module Luyện Nói: Trò chuyện với giáo viên bản ngữ + Nhận xét lỗi + Sửa phát âm & Ngữ âm (Phonétique)
   async chatWithTutor(userFrenchText, conversationHistory = [], level = 'B1') {
-    const systemPrompt = `Bạn là một giáo viên tiếng Pháp bản ngữ nhiệt tình, chuyên nghiệp, đang trò chuyện trực tiếp để luyện nói cho học viên trình độ [${level}].
+    const systemPrompt = `Bạn là giáo viên tiếng Pháp bản ngữ kiêm chuyên gia luyện ngữ âm & phát âm (Phonétique & Prononciation) cho học viên Việt Nam trình độ [${level}].
 Yêu cầu bắt buộc:
 1. Chỉ dùng từ vựng, cấu trúc câu và các thì ngữ pháp hoàn toàn phù hợp với chuẩn trình độ CEFR [${level}].
 2. Luôn trả lời bằng TIẾNG PHÁP một cách ngắn gọn, thân thiện, tự nhiên và đặt thêm 1 câu hỏi gợi mở để học viên tiếp tục nói.
-3. Sau câu trả lời tiếng Pháp, hãy xuống 2 dòng, ghi chính xác từ khóa "Nhận xét:" rồi phân tích ngắn gọn 1-2 lỗi từ vựng, ngữ pháp hoặc diễn đạt mà học viên vừa mắc phải trong câu vừa rồi (nếu câu nói của học viên hoàn toàn chuẩn xác, hãy khen ngợi và gợi ý một cách diễn đạt hay hơn nâng cao).
-4. Phần "Nhận xét:" giải thích hoàn toàn bằng TIẾNG VIỆT, rõ ràng, dễ hiểu.`;
+3. Sau câu trả lời tiếng Pháp, hãy xuống 2 dòng, ghi chính xác "Nhận xét:" rồi phân tích ngắn gọn 1-2 lỗi từ vựng, ngữ pháp hoặc diễn đạt mà học viên vừa mắc phải trong câu vừa rồi bằng TIẾNG VIỆT (nếu câu nói của học viên hoàn toàn chuẩn xác, hãy khen ngợi và gợi ý một cách diễn đạt hay hơn nâng cao).
+4. Xuống tiếp 2 dòng, ghi chính xác "Phát âm & Ngữ âm:" rồi hướng dẫn chi tiết bằng TIẾNG VIỆT về các điểm phát âm trong câu của học viên:
+   - Liệt kê 1-3 từ/cụm từ quan trọng kèm phiên âm IPA chuẩn Pháp (ví dụ: "beaucoup" /boku/, "les‿amis" /lez‿ami/, "tu" /ty/).
+   - Phân tích cạm bẫy phát âm người Việt hay mắc (âm câm lettre muette, âm mũi nasale [ɑ̃]/[ɔ̃]/[ɛ̃], âm [y] vs [u], âm R rung họng [ʁ], nối âm liaison bắt buộc).
+   - Hướng dẫn khẩu hình miệng, vị trí lưỡi và cách bật hơi để phát âm chuẩn người Paris.
+   Định dạng mỗi dòng phát âm:
+   - [Từ/Cụm từ] (/phiên âm IPA/): Lời khuyên phát âm & khẩu hình cụ thể.`;
 
     const messages = [];
     // Include last 6 turns for context
     const recentHistory = conversationHistory.slice(-6);
     recentHistory.forEach(item => {
       messages.push({ role: 'user', content: item.userText });
-      messages.push({ role: 'assistant', content: `${item.frenchReply}\n\nNhận xét:\n${item.feedbackVi}` });
+      const assistantFullContent = `${item.frenchReply}\n\nNhận xét:\n${item.feedbackVi || ''}${item.phoneticsRaw ? `\n\nPhát âm & Ngữ âm:\n${item.phoneticsRaw}` : ''}`;
+      messages.push({ role: 'assistant', content: assistantFullContent });
     });
 
     messages.push({ role: 'user', content: userFrenchText });
@@ -172,21 +178,72 @@ Yêu cầu bắt buộc:
       temperature: 0.6
     });
 
-    // Parse the French reply vs Vietnamese feedback
+    // Parse the 3 parts: French reply, Vietnamese feedback, Phonetics feedback
     let frenchReply = rawResponse;
     let feedbackVi = '';
+    let phoneticsRaw = '';
 
-    const splitKeyword = rawResponse.match(/\n\s*Nhận xét\s*:\s*/i) || rawResponse.match(/Nhận xét\s*:\s*/i);
-    if (splitKeyword) {
-      const idx = splitKeyword.index;
-      frenchReply = rawResponse.substring(0, idx).trim();
-      feedbackVi = rawResponse.substring(idx + splitKeyword[0].length).trim();
+    const splitPhonetics = rawResponse.match(/\n\s*Phát âm\s*(?:&|và)\s*Ngữ âm\s*:\s*/i) || rawResponse.match(/Phát âm\s*(?:&|và)\s*Ngữ âm\s*:\s*/i);
+    let textBeforePhonetics = rawResponse;
+
+    if (splitPhonetics) {
+      const pIdx = splitPhonetics.index;
+      textBeforePhonetics = rawResponse.substring(0, pIdx).trim();
+      phoneticsRaw = rawResponse.substring(pIdx + splitPhonetics[0].length).trim();
     }
 
+    const splitFeedback = textBeforePhonetics.match(/\n\s*Nhận xét\s*:\s*/i) || textBeforePhonetics.match(/Nhận xét\s*:\s*/i);
+    if (splitFeedback) {
+      const fIdx = splitFeedback.index;
+      frenchReply = textBeforePhonetics.substring(0, fIdx).trim();
+      feedbackVi = textBeforePhonetics.substring(fIdx + splitFeedback[0].length).trim();
+    } else {
+      frenchReply = textBeforePhonetics.trim();
+    }
+
+    // Parse structured phonetic items
+    const parsedPhonetics = this.parsePhoneticsList(phoneticsRaw);
+
     return {
-      frenchReply,
-      feedbackVi: feedbackVi || 'Rất tốt! Câu nói của bạn tự nhiên và không mắc lỗi ngữ pháp đáng kể.'
+      frenchReply: frenchReply || 'Très bien, continuons la conversation !',
+      feedbackVi: feedbackVi || 'Rất tốt! Câu nói của bạn tự nhiên và không mắc lỗi ngữ pháp đáng kể.',
+      phoneticsRaw,
+      phonetics: parsedPhonetics
     };
+  },
+
+  // Helper to parse phonetic items into structured cards
+  parsePhoneticsList(rawText) {
+    if (!rawText) return [];
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const items = [];
+
+    lines.forEach(line => {
+      const cleanLine = line.replace(/^[-*•\d.]+\s*/, '').trim();
+      if (!cleanLine) return;
+
+      // Match patterns like: "beaucoup (/boku/): Chú ý..." or "les amis /lez‿ami/ : Nối âm..."
+      const match = cleanLine.match(/^(?:\*\*)?([^(/:*]+)(?:\*\*)?\s*(?:\((?:\/)?([^)/]+)(?:\/)?\)|\/(.+?)\/)\s*:\s*(.*)$/i);
+      if (match) {
+        const word = (match[1] || '').trim().replace(/\*\*/g, '');
+        const ipa = (match[2] || match[3] || '').trim();
+        const tip = (match[4] || '').trim();
+        items.push({
+          word,
+          ipa: ipa.startsWith('/') ? ipa : `/${ipa}/`,
+          tip
+        });
+      } else {
+        // Fallback for unstructured lines
+        items.push({
+          word: '',
+          ipa: '',
+          tip: cleanLine
+        });
+      }
+    });
+
+    return items;
   },
 
   // 2. Module Chấm Điểm Buổi Luyện Nói Chuẩn Grille DELF B1 (25 điểm)
@@ -446,11 +503,16 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
       });
     }
 
-    // Default conversational response
+    // Default conversational response with comprehensive phonetics & tips
     return `Bonjour ! C'est un plaisir d'échanger avec vous en français. Votre phrase est très claire. Pouvez-vous me parler un peu plus de vos activités préférées pendant le week-end ?
 
 Nhận xét:
-Bạn đã diễn đạt ý tốt. Hãy chú ý chia động từ ở ngôi thứ nhất (Je) và sử dụng mạo từ phù hợp khi nói về sở thích nhé. (Ví dụ: "J'aime faire du vélo").`;
+Bạn đã diễn đạt ý tốt. Hãy chú ý chia động từ ở ngôi thứ nhất (Je) và sử dụng mạo từ phù hợp khi nói về sở thích nhé. (Ví dụ: "J'aime faire du vélo").
+
+Phát âm & Ngữ âm:
+- Bonjour (/bɔ̃ʒuʁ/): Chú ý âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ], không phát âm thành "bông-dua".
+- activité (/aktivite/): Âm "é" phát âm sắc và dứt khoát, không kéo dài như tiếng Việt.
+- faire du vélo (/fɛʁ dy velo/): Chữ "du" mang âm [y], hãy đặt khẩu hình chữ "i" rồi chu tròn môi như huýt sáo.`;
   }
 };
 

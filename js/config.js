@@ -132,6 +132,79 @@ const CONFIG = {
       topic: 'Văn hóa & Lễ hội',
       transcript: `Le 21 juin, partout en France, c'est la Fête de la Musique. Tous les musiciens, professionnels et amateurs, jouent gratuitement dans les rues, les places et les parcs. Les gens sortent en famille ou avec des amis pour écouter différents styles de musique comme le rock, le jazz et la chanson française.`
     }
+  ],
+
+  // Curated French Phonetics Essentials for Vietnamese Learners (Atelier Phonétique)
+  FRENCH_PHONETICS_PRESETS: [
+    {
+      id: 'ph_u_vs_ou',
+      category: 'Cặp âm phân biệt',
+      title: 'Phân biệt Âm [y] (u) vs Âm [u] (ou)',
+      badge: 'Cực kỳ quan trọng',
+      description: 'Người Việt hay phát âm chữ "u" thành "u" tiếng Việt, dẫn đến nhầm lẫn nghiêm trọng giữa "tu" (bạn) và "tout" (tất cả).',
+      mouthGuide: 'Để phát âm [y] (u): Đặt khẩu hình miệng phát âm chữ "i", sau đó giữ nguyên lưỡi và CHU TRÒN MÔI như huýt sáo.',
+      pairs: [
+        { french: 'tu', ipa: '/ty/', meaning: 'bạn (ngôi thứ 2)', compareWith: 'tout /tu/ (tất cả)' },
+        { french: 'vu', ipa: '/vy/', meaning: 'đã thấy (voir)', compareWith: 'vous /vu/ (các bạn)' },
+        { french: 'dessus', ipa: '/dəsy/', meaning: 'ở phía trên', compareWith: 'dessous /dəsu/ (ở phía dưới)' },
+        { french: 'rue', ipa: '/ʁy/', meaning: 'con đường', compareWith: 'roue /ʁu/ (bánh xe)' }
+      ]
+    },
+    {
+      id: 'ph_nasal_vowels',
+      category: 'Âm mũi (Voyelles nasales)',
+      title: '4 Âm mũi đặc trưng tiếng Pháp [ɑ̃], [ɔ̃], [ɛ̃], [œ̃]',
+      badge: 'Bản sắc tiếng Pháp',
+      description: 'Âm mũi phát ra luồng hơi qua cả khoang miệng và mũi, không phát âm phụ âm n/m đứng sau.',
+      mouthGuide: 'Hạ hàm mềm xuống để hơi thoát lên mũi. Tuyệt đối không khép môi tạo âm "m" hay "n" ở cuối.',
+      pairs: [
+        { french: 'un restaurant', ipa: '/œ̃ ʁɛstoʁɑ̃/', meaning: 'quán ăn', compareWith: 'Âm [ɑ̃] (an/en): mở miệng rộng' },
+        { french: 'un bonbon', ipa: '/œ̃ bɔ̃bɔ̃/', meaning: 'kẹo', compareWith: 'Âm [ɔ̃] (on/om): chu môi tròn nhỏ' },
+        { french: 'le matin et le pain', ipa: '/lə matɛ̃ e lə pɛ̃/', meaning: 'buổi sáng và bánh mì', compareWith: 'Âm [ɛ̃] (in/ain/ein): bè môi như cười' },
+        { french: 'un parfum', ipa: '/œ̃ paʁfœ̃/', meaning: 'nước hoa', compareWith: 'Âm [œ̃] (un/um): mở tròn tự nhiên' }
+      ]
+    },
+    {
+      id: 'ph_guttural_r',
+      category: 'Phụ âm họng',
+      title: 'Âm [ʁ] (R rung cuống họng Paris)',
+      badge: 'Âm Pháp chuẩn',
+      description: 'Âm "r" tiếng Pháp không uốn cong đầu lưỡi như tiếng Việt/tiếng Anh, mà tạo ma sát ở đáy họng (vòm mềm).',
+      mouthGuide: 'Đặt cuống lưỡi chạm nhẹ vào vòm mềm ở đáy cổ họng, thở đẩy luồng hơi nhẹ ra giống như súc miệng nhẹ nhàng.',
+      pairs: [
+        { french: 'Bonjour, merci', ipa: '/bɔ̃ʒuʁ mɛʁsi/', meaning: 'Xin chào, cảm ơn', compareWith: 'R rung nhẹ giữa từ' },
+        { french: 'Paris et la France', ipa: '/paʁi e la fʁɑ̃s/', meaning: 'Paris và nước Pháp', compareWith: 'R đứng sau nguyên âm / phụ âm' },
+        { french: 'regarder la radio', ipa: '/ʁəɡaʁde la ʁadjo/', meaning: 'xem / đài phát thanh', compareWith: 'R đứng đầu từ' }
+      ]
+    },
+    {
+      id: 'ph_liaisons',
+      category: 'Nối âm & Ngữ điệu',
+      title: 'Quy tắc Nối âm bắt buộc (Liaisons obligatoires)',
+      badge: 'DELF B1',
+      description: 'Nối phụ âm câm cuối từ trước với nguyên âm đầu của từ kế tiếp để câu nói mượt mà, lưu loát.',
+      mouthGuide: 'Phụ âm -s/-x nối thành âm [z], -d nối thành âm [t], -n nối thành âm [n].',
+      pairs: [
+        { french: 'les‿amis', ipa: '/lez‿ami/', meaning: 'những người bạn', compareWith: '-s nối thành [z]' },
+        { french: 'vous‿avez', ipa: '/vuz‿ave/', meaning: 'các bạn có', compareWith: '-s nối thành [z]' },
+        { french: 'un‿enfant', ipa: '/œ̃.n‿ɑ̃fɑ̃/', meaning: 'một đứa trẻ', compareWith: '-n nối thành [n]' },
+        { french: 'un grand‿homme', ipa: '/œ̃ ɡʁɑ̃.t‿ɔm/', meaning: 'một vĩ nhân', compareWith: '-d nối thành [t]' }
+      ]
+    },
+    {
+      id: 'ph_silent_letters',
+      category: 'Phụ âm câm',
+      title: 'Phụ âm cuối câm (Lettres finales muettes)',
+      badge: 'Lỗi 90% người mới mắc',
+      description: 'Các chữ p, d, t, s, x, z, g đứng cuối từ thường KHÔNG ĐƯỢC PHÁT ÂM (trừ khi nối âm).',
+      mouthGuide: 'Dừng âm ngay tại nguyên âm trước đó, không phát âm âm gió hay bật âm thừa.',
+      pairs: [
+        { french: 'beaucoup', ipa: '/boku/', meaning: 'nhiều (chữ p câm)', compareWith: 'Không đọc "bô-cúp"' },
+        { french: 'le temps', ipa: '/lə tɑ̃/', meaning: 'thời gian/thời tiết (p, s câm)', compareWith: 'Không đọc "tem-pơ"' },
+        { french: 'ils parlent', ipa: '/il paʁl/', meaning: 'họ nói (đuôi -ent của động từ câm)', compareWith: 'Chỉ đọc đến âm /l/' },
+        { french: 'très grand', ipa: '/tʁɛ ɡʁɑ̃/', meaning: 'rất to lớn (s, d câm)', compareWith: 'Không đọc "tơ-rét gơ-răng-đờ"' }
+      ]
+    }
   ]
 };
 
