@@ -19,6 +19,7 @@ require('../js/config.js');
 require('../js/state.js');
 require('../js/speech.js');
 require('../js/ai-service.js');
+require('../js/progress.js');
 
 async function runTests() {
   console.log('🧪 Bắt đầu kiểm thử toàn diện hệ thống (Multi-user, DELF B1 Grille, OmniRoute)...\n');
@@ -206,6 +207,32 @@ async function runTests() {
   assert.ok(parsedPhonetics[0].tip.includes('huýt sáo'));
 
   console.log('  ✅ Phonétique: Bộ dữ liệu khẩu hình miệng chuẩn và bộ phân tích IPA parsing hoạt động chính xác.');
+
+  // Test 6: Progress & AI Diagnostic Hub
+  console.log('\n6. Kiểm tra Trung Tâm Chẩn Đoán Lỗi & Kế Hoạch Khắc Phục (Progress & Diagnostic Hub):');
+  const sampleRecords = [
+    {
+      id: 'rec-1',
+      type: 'speaking',
+      level: 'B1',
+      score: 16.5,
+      maxScore: 25,
+      date: new Date().toISOString(),
+      commonErrors: ['Phân biệt Passé Composé & Imparfait', 'Phát âm âm mũi [ɑ̃] vs [ɔ̃]']
+    }
+  ];
+  const diagOutput = await AIService.diagnoseErrorsAndPrescribeSolutions(sampleRecords, { name: 'Trang', level: 'B1' });
+  assert.ok(diagOutput.summary, 'Có tóm tắt chẩn đoán sư phạm');
+  assert.ok(diagOutput.bottlenecks.length >= 2, 'Có danh sách điểm nghẽn then chốt');
+  assert.ok(diagOutput.errors.length >= 3, 'Có danh sách các lỗi hay gặp nhất');
+  assert.ok(diagOutput.remedialPlan.length >= 3, 'Có lộ trình 3 bước khắc phục');
+
+  // Verify ProgressModule error synthesis
+  const synthesized = ProgressModule.synthesizeErrorsFromRecords(sampleRecords, { name: 'Trang', level: 'B1' });
+  assert.ok(synthesized.errors.some(e => e.category === 'grammar'), 'Có phân loại lỗi Ngữ pháp');
+  assert.ok(synthesized.errors.some(e => e.category === 'phonetics'), 'Có phân loại lỗi Ngữ âm');
+  assert.ok(synthesized.errors.some(e => e.category === 'vocab'), 'Có phân loại lỗi Từ vựng');
+  console.log('  ✅ Diagnostic Hub: Tự động tổng hợp lỗi theo 4 nhóm, tạo thẻ so sánh ❌/✅ và lộ trình 3 bước hoàn chỉnh.');
 
   console.log('\n✨ TẤT CẢ CÁC BÀI KIỂM THỬ ĐỀU ĐÃ ĐẠT (100% PASS)!');
 }

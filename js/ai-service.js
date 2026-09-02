@@ -378,6 +378,148 @@ Trả về JSON:
     return parsedResult;
   },
 
+  // 2.1 Module AI Chẩn Đoán Lỗi Thường Gặp & Tìm Giải Pháp Khắc Phục (Diagnostic & Remedial Center)
+  async diagnoseErrorsAndPrescribeSolutions(historyRecords = [], profile = null) {
+    const level = profile ? profile.level : 'B1';
+    const profileName = profile ? profile.name : 'Học viên';
+
+    // Aggregate error footprint from history
+    const errorList = [];
+    let totalSessions = historyRecords.length;
+    let speakingScores = [];
+
+    historyRecords.forEach(r => {
+      if (r.type === 'speaking' && r.score !== undefined) {
+        speakingScores.push(r.score);
+      }
+      if (Array.isArray(r.commonErrors)) {
+        r.commonErrors.forEach(err => {
+          if (err && typeof err === 'string') errorList.push(err.trim());
+        });
+      }
+    });
+
+    const errorSummaryText = errorList.length > 0
+      ? `Các lỗi đã ghi nhận trong lịch sử: ${errorList.join(', ')}`
+      : 'Chưa có ghi nhận lỗi cụ thể (học viên mới bắt đầu học).';
+
+    const systemPrompt = `Bạn là Chuyên gia Cố vấn Sư phạm & Giám khảo DELF cao cấp của France Éducation International.
+Nhiệm vụ: Phân tích toàn diện lịch sử học tập của học viên [${profileName}] (Trình độ mục tiêu: DELF ${level}), nhận diện chính xác các lỗi học viên ĐANG MẮC PHẢI NHIỀU NHẤT, tóm tắt chẩn đoán và đưa ra GIẢI PHÁP KHẮC PHỤC TRIỆT ĐỂ.
+
+Thông tin học viên:
+- Tên: ${profileName}
+- Mục tiêu: DELF ${level}
+- Tổng số buổi luyện: ${totalSessions}
+- Lịch sử điểm thi Nói (/25): ${speakingScores.join(', ') || 'Chưa có'}
+- Dữ liệu lỗi ghi nhận: ${errorSummaryText}
+
+YÊU CẦU:
+1. "summary": 2-3 câu nhận xét chân thực, khích lệ và chỉ rõ điểm nghẽn lớn nhất trong phản xạ, ngữ pháp hoặc phát âm của học viên.
+2. "primary_weakness": Tên ngắn gọn của điểm yếu cốt lõi cần ưu tiên khắc phục (ví dụ: "Phối hợp thì Passé composé vs Imparfait & Phân biệt âm mũi").
+3. "top_errors": Danh sách 3-4 lỗi học viên gặp phải nhiều nhất hoặc điển hình nhất ở trình độ DELF ${level}. Mỗi lỗi gồm:
+   - "category": Phân loại ("Ngữ pháp", "Phát âm & Ngữ âm", "Từ vựng & Diễn đạt", "Kỹ năng Nghe/Đọc").
+   - "title": Tên lỗi ngắn gọn, súc tích.
+   - "severity": Mức độ nghiêm trọng ("Nghiêm trọng (Critical B1)", "Trung bình (B1 Requirement)", "Cần lưu ý").
+   - "frequency_text": Mô tả tần suất (ví dụ: "Gặp thường xuyên trong kể chuyện", "Dễ nhầm khi phản xạ nhanh").
+   - "wrong_example": Câu sai điển hình học viên hay nói/nghĩ.
+   - "correct_example": Câu sửa đúng chuẩn người Pháp.
+   - "explanation": Giải thích ngắn gọn bản chất ngữ pháp/ngữ âm tại sao sai bằng tiếng Việt.
+   - "action_solution": Giải pháp hành động cụ thể, mẹo nhớ thần tốc (quy tắc dễ nhớ).
+   - "practice_action": Hành động luyện tập ("speaking" hoặc "phonetics" hoặc "reading" hoặc "listening").
+4. "study_roadmap": 3 bước lộ trình hành động cụ thể trong tuần để nâng điểm thi DELF.
+
+Hãy trả về DUY NHẤT một JSON theo cấu trúc sau (không kèm markdown):
+{
+  "summary": "Tóm tắt chẩn đoán tổng quan...",
+  "primary_weakness": "Điểm yếu cốt lõi...",
+  "top_errors": [
+    {
+      "category": "Ngữ pháp",
+      "title": "Nhầm lẫn trợ động từ Être và Avoir ở Passé Composé",
+      "severity": "Nghiêm trọng (Critical B1)",
+      "frequency_text": "Rất thường gặp khi kể lại trải nghiệm",
+      "wrong_example": "Hier, j'ai allé au marché avec mes amis.",
+      "correct_example": "Hier, je suis allé(e) au marché với mes amis.",
+      "explanation": "Động từ chuyển động 'aller' bắt buộc chia với trợ động từ 'être' và hợp giống số với chủ ngữ.",
+      "action_solution": "Học thuộc 14 động từ 'Ngôi nhà Être' (DR MRS VANDERTRAMP) và luôn nhớ thêm 'e/s' vào participe passé khi chủ ngữ là nữ/số nhiều.",
+      "practice_action": "speaking"
+    }
+  ],
+  "study_roadmap": [
+    "Bước 1: ...",
+    "Bước 2: ...",
+    "Bước 3: ..."
+  ]
+}`;
+
+    const userMessage = `Hãy phân tích và đưa ra kế hoạch chẩn đoán & khắc phục lỗi chi tiết cho học viên ${profileName} (DELF ${level}) ngay bây giờ.`;
+
+    const rawResponse = await this.request({
+      systemPrompt,
+      messages: [{ role: 'user', content: userMessage }],
+      temperature: 0.3,
+      jsonMode: true
+    });
+
+    const parsed = this.cleanAndParseJSON(rawResponse);
+    if (!parsed) return null;
+
+    // Normalize category names
+    const catMap = {
+      'Ngữ pháp': 'grammar',
+      'Phát âm & Ngữ âm': 'phonetics',
+      'Phát âm': 'phonetics',
+      'Từ vựng & Diễn đạt': 'vocab',
+      'Từ vựng': 'vocab',
+      'Kỹ năng Nghe/Đọc': 'comprehension',
+      'Đọc / Nghe': 'comprehension'
+    };
+
+    const rawErrors = parsed.top_errors || parsed.errors || [];
+    const normalizedErrors = rawErrors.map((err, idx) => ({
+      id: err.id || `diag-err-${idx + 1}`,
+      category: catMap[err.category] || err.category || 'grammar',
+      title: err.title || 'Lỗi diễn đạt',
+      severity: err.severity || 'Cần cải thiện',
+      frequency: err.frequency || (err.frequency_text ? 5 : 3),
+      frequency_text: err.frequency_text || 'Thường gặp trong bài thi',
+      wrong: err.wrong_example || err.wrong || '',
+      correct: err.correct_example || err.correct || '',
+      explanation: err.explanation || '',
+      action_solution: err.action_solution || err.solution || '',
+      practice_action: err.practice_action || 'speaking'
+    }));
+
+    const rawRoadmap = parsed.study_roadmap || parsed.remedialPlan || [];
+    const normalizedPlan = rawRoadmap.map((item, idx) => {
+      if (typeof item === 'string') {
+        const parts = item.split(':');
+        return {
+          step: parts[0] ? parts[0].trim() : `Bước ${idx + 1}`,
+          action: parts.slice(1).join(':').trim() || item,
+          tip: 'Kiên trì thực hành để tạo phản xạ ngôn ngữ tự nhiên.'
+        };
+      }
+      return item;
+    });
+
+    const bottlenecks = parsed.bottlenecks || (parsed.primary_weakness ? [parsed.primary_weakness] : [
+      'Phân biệt Passé Composé & Imparfait',
+      'Khẩu hình 3 âm mũi [ɑ̃], [ɔ̃], [ɛ̃]',
+      'Sử dụng liên từ nối ý B1'
+    ]);
+
+    return {
+      summary: parsed.summary || 'Chẩn đoán học tập đã hoàn tất.',
+      primary_weakness: parsed.primary_weakness || bottlenecks[0],
+      bottlenecks,
+      errors: normalizedErrors,
+      top_errors: normalizedErrors,
+      remedialPlan: normalizedPlan,
+      study_roadmap: rawRoadmap
+    };
+  },
+
   // 3. Module Luyện Đọc: Sinh đoạn văn + 3 câu hỏi trắc nghiệm
   async generateReadingExercise({ level = 'B1', seedText = null, seedTitle = null, topic = null }) {
     let contextInstruction = '';
@@ -500,6 +642,11 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
     // If request was for Listening exercise
     if (systemPrompt.includes('Compréhension de l\'oral') || systemPrompt.includes('luyện nghe')) {
       return this._mockListeningExercise(systemPrompt);
+    }
+
+    // If request was for Diagnostic & Error Solutions
+    if (systemPrompt.includes('Chẩn Đoán Lỗi') || systemPrompt.includes('GIẢI PHÁP KHẮC PHỤC') || systemPrompt.includes('Chuyên gia Cố vấn Sư phạm & Giám khảo DELF')) {
+      return this._mockDiagnosticAndSolutions(systemPrompt);
     }
 
     // Default conversational response with comprehensive phonetics & tips
@@ -1073,6 +1220,107 @@ Phát âm & Ngữ âm:
         }
       ]
     });
+  },
+
+  _mockDiagnosticAndSolutions(systemPrompt = '') {
+    const isB1 = systemPrompt.includes('DELF B1');
+
+    if (isB1) {
+      return JSON.stringify({
+        summary: 'Bạn đã có nền tảng từ vựng tương đối tốt và phản xạ nhận diện ý chính khá nhanh. Tuy nhiên, trong giao tiếp Nói và Đọc hiểu nâng cao, bạn thường gặp 2 điểm nghẽn: phân vân giữa Passé Composé & Imparfait khi kể chuyện và phát âm chưa rõ các nguyên âm mũi [ɑ̃] - [ɔ̃].',
+        primary_weakness: 'Phối hợp thì Quá khứ & Chuẩn hóa Khẩu hình Âm mũi',
+        bottlenecks: [
+          'Phân biệt Passé Composé & Imparfait',
+          'Khẩu hình 3 âm mũi [ɑ̃], [ɔ̃], [ɛ̃]',
+          'Sử dụng liên từ B1 (Cependant, En revanche)'
+        ],
+        top_errors: [
+          {
+            category: 'Ngữ pháp',
+            title: 'Nhầm lẫn Passé Composé (Hành động dứt điểm) vs Imparfait (Bối cảnh/Thói quen)',
+            severity: 'Nghiêm trọng (Critical B1)',
+            frequency_text: 'Xuất hiện trong 75% các bài nói kể chuyện',
+            wrong_example: 'Quand j\'étais jeune, j\'ai habité à Paris pendant que j\'ai étudié.',
+            correct_example: 'Quand j\'étais jeune, j\'habitais à Paris pendant que j\'étudiais.',
+            explanation: 'Miêu tả trạng thái kéo dài, bối cảnh hoặc thói quen trong quá khứ bắt buộc dùng Imparfait (-ais, -ait, -ions...). Chỉ dùng Passé composé cho biến cố xảy ra bất ngờ ngắt ngang hành động khác.',
+            action_solution: 'Quy tắc "Khung cảnh vs Sự kiện": Tự hỏi "Hành động này là bức tranh nền (Imparfait) hay là sự kiện đột ngột (Passé composé)?".',
+            practice_action: 'speaking'
+          },
+          {
+            category: 'Ngữ pháp',
+            title: 'Trợ động từ ÊTRE và quy tắc hợp giống số của Phân từ quá khứ',
+            severity: 'Nghiêm trọng (Critical B1)',
+            frequency_text: 'Rất hay quên khi chủ ngữ là giống cái hoặc số nhiều',
+            wrong_example: 'Elle a allé au cinéma hier soir.',
+            correct_example: 'Elle est allée au cinéma hier soir.',
+            explanation: '14 động từ chuyển động trong "Ngôi nhà Être" (aller, venir, partir, monter...) và động từ phản thân bắt buộc đi với ÊTRE và phải hợp giống/số (thêm -e cho nữ, thêm -s cho số nhiều).',
+            action_solution: 'Thuộc thần chú DR MRS VANDERTRAMP. Mỗi khi nói "Elle est...", luôn nhớ trong đầu có âm đuôi hợp giống cái.',
+            practice_action: 'speaking'
+          },
+          {
+            category: 'Phát âm & Ngữ âm',
+            title: 'Lẫn lộn các nguyên âm mũi [ɑ̃] (an/en), [ɔ̃] (on), [ɛ̃] (in/ain)',
+            severity: 'Trung bình (B1 Requirement)',
+            frequency_text: 'Người bản xứ dễ nghe nhầm sang từ khác',
+            wrong_example: 'Phát âm "vent" (/vɑ̃/) giống hệt "vin" (/vɛ̃/) hoặc "vont" (/vɔ̃/).',
+            correct_example: 'vent (/vɑ̃/ - mở hàm rộng), vin (/vɛ̃/ - bè môi cười), vont (/vɔ̃/ - chu môi tròn nhỏ).',
+            explanation: 'Tiếng Pháp có 3 âm mũi cốt lõi. Khẩu hình miệng sai sẽ đổi nghĩa của từ hoàn toàn (vent = gió, vin = rượu, vont = đi).',
+            action_solution: 'Luyện tập mỗi ngày 3 phút với gương: [ɑ̃] há miệng dọc, [ɛ̃] bè ngang cười, [ɔ̃] tròn môi như huýt sáo.',
+            practice_action: 'phonetics'
+          },
+          {
+            category: 'Từ vựng & Diễn đạt',
+            title: 'Thiếu liên từ nối ý B1 (Connecteurs logiques)',
+            severity: 'Trung bình (B1 Requirement)',
+            frequency_text: 'Câu bị rời rạc, điểm tiêu chí B1 không cao',
+            wrong_example: 'J\'aime voyager. C\'est cher. Je n\'y vais pas souvent.',
+            correct_example: 'J\'aime beaucoup voyager, cependant c\'est assez coûteux ; par conséquent, je n\'y vais que rarement.',
+            explanation: 'Trong bài thi DELF B1, giám khảo yêu cầu các câu phức có liên từ nối: quan hệ đối lập (cependant, pourtant), nguyên nhân - kết quả (en effet, par conséquent, car), bổ sung (de plus, en outre).',
+            action_solution: 'Chọn sẵn 4 "liên từ tủ": Cependant (tuy nhiên), De plus (hơn nữa), En effet (thật vậy), Par conséquent (do đó) và luôn chèn vào mỗi lượt nói.',
+            practice_action: 'speaking'
+          }
+        ],
+        study_roadmap: [
+          'Tuần 1 (Ngữ pháp): Nắm chắc 14 động từ chia với ÊTRE và làm 5 câu kể chuyện phân biệt Passé composé vs Imparfait.',
+          'Tuần 2 (Ngữ âm): Vào "Xưởng Ngữ Âm" luyện 10 cặp từ đối lập âm mũi [ɑ̃] / [ɔ̃] / [ɛ̃] với công cụ nhận diện giọng nói.',
+          'Tuần 3 (Diễn đạt B1): Thực hành bài thi Nói với chủ đề xã hội, cam kết sử dụng tối thiểu 3 liên từ nối ý (cependant, de plus, par conséquent).'
+        ]
+      });
+    } else {
+      return JSON.stringify({
+        summary: 'Bạn đang tiến bộ tốt ở các cấu trúc câu giao tiếp thường nhật cơ bản. Điểm cần tập trung nhất là mạo từ (le/la/les/un/une/des) và chia động từ nhóm 1 ở thì Hiện tại (Présent).',
+        primary_weakness: 'Mạo từ giống đực/cái & Chia động từ nhóm 1',
+        top_errors: [
+          {
+            category: 'Ngữ pháp',
+            title: 'Nhầm lẫn giống Đực (Masculin) và giống Cái (Féminin)',
+            severity: 'Trung bình (A1-A2 Foundation)',
+            frequency_text: 'Dễ nhầm mạo từ un/une, le/la',
+            wrong_example: 'Le table, la problème.',
+            correct_example: 'La table (giống cái), le problème (giống đực).',
+            explanation: 'Trong tiếng Pháp, danh từ tận cùng bằng "-tion, -té, -ette, -ance" thường là giống cái; "-isme, -ment, -age, -ème" thường là giống đực.',
+            action_solution: 'Luôn học từ mới kèm mạo từ: không học "table", hãy học "une table"; không học "soleil", hãy học "le soleil".',
+            practice_action: 'speaking'
+          },
+          {
+            category: 'Phát âm & Ngữ âm',
+            title: 'Phát âm phụ âm câm ở cuối từ (E, S, T, D, P)',
+            severity: 'Trung bình (A1-A2 Foundation)',
+            frequency_text: 'Thói quen đọc hết mọi chữ cái',
+            wrong_example: 'Đọc rõ âm "s" trong "les", "t" trong "parfait", "e" trong "parle".',
+            correct_example: 'Hầu hết phụ âm cuối trong tiếng Pháp là âm câm (trừ C, R, F, L - thần chú CaReFuL).',
+            explanation: 'Quy tắc C-R-F-L (Careful): Các phụ âm C, R, F, L ở cuối từ thường được phát âm; còn lại S, T, D, P, X, Z hầu hết là câm.',
+            action_solution: 'Nhớ thần chú "CaReFuL": Thấy C, R, F, L thì đọc, thấy S, T, D thì nuốt âm.',
+            practice_action: 'phonetics'
+          }
+        ],
+        study_roadmap: [
+          'Bước 1: Học từ mới luôn gắn liền với "un/une" hoặc "le/la".',
+          'Bước 2: Luyện phát âm phụ âm câm theo quy tắc CaReFuL.',
+          'Bước 3: Thực hành 3 bài hội thoại chào hỏi và giới thiệu bản thân hằng ngày.'
+        ]
+      });
+    }
   }
 };
 
