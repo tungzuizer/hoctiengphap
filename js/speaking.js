@@ -13,6 +13,7 @@ const SpeakingModule = {
   init() {
     this.bindEvents();
     this.loadHistory();
+    this.renderTopics();
     this.renderAtelierPhonétique();
   },
 
@@ -490,6 +491,44 @@ const SpeakingModule = {
       osc.start();
       osc.stop(ctx.currentTime + 0.35);
     } catch (e) {}
+  },
+
+  /* ================= Gợi ý chủ đề trò chuyện theo ngữ cảnh (Thèmes de conversation) ================= */
+  renderTopics() {
+    const container = document.getElementById('speaking-topics-container');
+    if (!container || !window.CONFIG || !window.CONFIG.SPEAKING_TOPICS) return;
+
+    const topics = window.CONFIG.SPEAKING_TOPICS;
+    container.innerHTML = topics.map(t => {
+      const iconSvg = window.Icons && window.Icons.get ? window.Icons.get(t.icon, '', 16) : '';
+      return `
+        <div class="topic-card-chip" onclick="SpeakingModule.selectTopic('${t.id}')">
+          <div class="topic-chip-top">
+            <span class="topic-chip-icon">${iconSvg}</span>
+            <span class="badge-topic">${this.escapeHTML(t.badge)}</span>
+          </div>
+          <div class="topic-chip-title">${this.escapeHTML(t.label)}</div>
+          <div class="topic-chip-starter">${this.escapeHTML(t.starterVi)}</div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  selectTopic(topicId) {
+    const topic = (window.CONFIG.SPEAKING_TOPICS || []).find(t => t.id === topicId);
+    if (!topic) return;
+
+    const textInput = document.getElementById('speaking-text-input');
+    if (textInput) {
+      textInput.value = topic.starterFr;
+      textInput.focus();
+    }
+
+    // Scroll to input / mic hero card smoothly
+    const inputCard = document.querySelector('.mic-hero-card');
+    if (inputCard && inputCard.scrollIntoView) {
+      inputCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   },
 
   /* ================= Dedicated Atelier Phonétique (Xưởng Luyện Ngữ Âm) ================= */

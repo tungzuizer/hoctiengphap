@@ -1209,6 +1209,115 @@ body {
   flex-wrap: wrap;
 }
 
+/* ================= Gợi ý chủ đề trò chuyện (Thèmes de conversation) ================= */
+.speaking-topics-section {
+  background: var(--card-bg);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.speaking-topics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.topics-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.topics-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.speaking-topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.topic-card-chip {
+  background: var(--card-solid);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.topic-card-chip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent-lavender));
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.topic-card-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+  background: var(--card-hover);
+}
+
+.topic-card-chip:hover::before {
+  opacity: 1;
+}
+
+.topic-card-chip:active {
+  transform: scale(0.98);
+}
+
+.topic-chip-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topic-chip-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topic-chip-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text-main);
+}
+
+.topic-chip-starter {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
 /* ================= Atelier Phonétique (Xưởng Luyện Ngữ Âm) ================= */
 .atelier-phonetique-wrapper {
   background: var(--card-bg);

@@ -18,8 +18,9 @@ const App = {
     // 3. Initialize Theme
     this.initTheme();
 
-    // 4. Bind Global Events
+    // 4. Bind Global Events & Touch Gestures
     this.bindEvents();
+    this.initTouchGestures();
 
     // 5. Update Profile Badge
     this.refreshCurrentProfileUI();
@@ -146,23 +147,77 @@ const App = {
         this.handleCreateProfile();
       });
     }
+  },
 
-    // Settings Modal
-    const settingsBtn = document.getElementById('btn-open-settings');
-    const closeSettingsBtn = document.getElementById('btn-close-settings-modal');
-    const formSettings = document.getElementById('form-profile-settings');
+  initTouchGestures() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let isTracking = false;
 
-    if (settingsBtn) {
-      settingsBtn.addEventListener('click', () => this.openSettingsModal());
-    }
-    if (closeSettingsBtn) {
-      closeSettingsBtn.addEventListener('click', () => this.closeSettingsModal());
-    }
-    if (formSettings) {
-      formSettings.addEventListener('submit', (e) => {
-        e.preventDefault();
-        this.handleSaveSettings();
-      });
+    const mainContent = document.querySelector('.app-main') || document.body;
+
+    mainContent.addEventListener('touchstart', (e) => {
+      const target = e.target;
+      // Skip gesture handling when interacting with modals, forms, sliders, inputs, or horizontal audio/seed scroll containers
+      if (
+        target.closest('.modal') ||
+        target.closest('input') ||
+        target.closest('textarea') ||
+        target.closest('select') ||
+        target.closest('.chat-messages-container') ||
+        target.closest('.rate-buttons')
+      ) {
+        isTracking = false;
+        return;
+      }
+
+      if (e.touches && e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchEndX = touchStartX;
+        touchEndY = touchStartY;
+        isTracking = true;
+      }
+    }, { passive: true });
+
+    mainContent.addEventListener('touchmove', (e) => {
+      if (!isTracking) return;
+      if (e.touches && e.touches.length === 1) {
+        touchEndX = e.touches[0].clientX;
+        touchEndY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    mainContent.addEventListener('touchend', () => {
+      if (!isTracking) return;
+      isTracking = false;
+
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+
+      // Check if horizontal swipe is dominant (minimum 50px delta and 1.4x steeper than vertical)
+      if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
+        if (deltaX < 0) {
+          // Swipe Left -> Next Tab
+          this.switchAdjacentTab(1);
+        } else {
+          // Swipe Right -> Prev Tab
+          this.switchAdjacentTab(-1);
+        }
+      }
+    }, { passive: true });
+  },
+
+  switchAdjacentTab(direction) {
+    const tabs = ['speaking', 'reading', 'listening', 'seedbank', 'progress'];
+    const currentIndex = tabs.indexOf(this.activeTab);
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + direction;
+    if (nextIndex >= 0 && nextIndex < tabs.length) {
+      this.switchTab(tabs[nextIndex]);
     }
   },
 
@@ -174,6 +229,10 @@ const App = {
     tabs.forEach(tab => {
       if (tab.dataset.tab === tabId) {
         tab.classList.add('active');
+        // Scroll active tab into view on mobile
+        if (tab.scrollIntoView) {
+          tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
       } else {
         tab.classList.remove('active');
       }
@@ -305,13 +364,9 @@ const App = {
   handleCreateProfile() {
     const nameInput = document.getElementById('new-profile-name');
     const levelSelect = document.getElementById('new-profile-level');
-    const apiKeyInput = document.getElementById('new-profile-apikey');
-    const providerSelect = document.getElementById('new-profile-provider');
 
     const name = nameInput?.value.trim();
     const level = levelSelect?.value || 'B1';
-    const apiKey = apiKeyInput?.value.trim() || '';
-    const provider = providerSelect?.value || 'omniroute';
 
     if (!name) {
       alert('Vui lòng nhập tên người học!');
@@ -319,9 +374,9 @@ const App = {
     }
 
     const config = {
-      provider,
-      apiKey,
-      baseUrl: provider === 'omniroute' ? window.CONFIG.DEFAULT_OMNIROUTE_BASE_URL : '',
+      provider: 'omniroute',
+      apiKey: '',
+      baseUrl: window.CONFIG.DEFAULT_OMNIROUTE_BASE_URL,
       model: window.CONFIG.DEFAULT_MODEL
     };
 
@@ -330,7 +385,6 @@ const App = {
 
     // Reset Form
     if (nameInput) nameInput.value = '';
-    if (apiKeyInput) apiKeyInput.value = '';
   },
 
   deleteProfile(profileId) {
@@ -341,70 +395,6 @@ const App = {
       if (window.SpeakingModule) window.SpeakingModule.loadHistory();
       if (window.ProgressModule) window.ProgressModule.render();
     }
-  },
-
-  /* ================= Settings Modal (API & OmniRoute) ================= */
-  openSettingsModal() {
-    const modal = document.getElementById('modal-settings');
-    if (!modal) return;
-
-    const profile = window.StateManager.getActiveProfile();
-    if (!profile) return;
-
-    const config = window.StateManager.getProfileConfig(profile.id);
-
-    const nameInput = document.getElementById('settings-profile-name');
-    const levelSelect = document.getElementById('settings-profile-level');
-    const providerSelect = document.getElementById('settings-provider');
-    const apiKeyInput = document.getElementById('settings-apikey');
-    const baseUrlInput = document.getElementById('settings-baseurl');
-    const modelInput = document.getElementById('settings-model');
-
-    if (nameInput) nameInput.value = profile.name;
-    if (levelSelect) levelSelect.value = profile.level;
-    if (providerSelect) providerSelect.value = config.provider || 'omniroute';
-    if (apiKeyInput) apiKeyInput.value = config.apiKey || '';
-    if (baseUrlInput) baseUrlInput.value = config.baseUrl || window.CONFIG.DEFAULT_OMNIROUTE_BASE_URL;
-    if (modelInput) modelInput.value = config.model || window.CONFIG.DEFAULT_MODEL;
-
-    modal.classList.remove('hidden');
-  },
-
-  closeSettingsModal() {
-    const modal = document.getElementById('modal-settings');
-    if (modal) modal.classList.add('hidden');
-  },
-
-  handleSaveSettings() {
-    const profile = window.StateManager.getActiveProfile();
-    if (!profile) return;
-
-    const nameInput = document.getElementById('settings-profile-name');
-    const levelSelect = document.getElementById('settings-profile-level');
-    const providerSelect = document.getElementById('settings-provider');
-    const apiKeyInput = document.getElementById('settings-apikey');
-    const baseUrlInput = document.getElementById('settings-baseurl');
-    const modelInput = document.getElementById('settings-model');
-
-    const name = nameInput?.value.trim() || profile.name;
-    const level = levelSelect?.value || profile.level;
-
-    // Update profile core info
-    window.StateManager.updateProfile(profile.id, { name, level });
-
-    // Update config
-    const config = {
-      provider: providerSelect?.value || 'omniroute',
-      apiKey: apiKeyInput?.value.trim() || '',
-      baseUrl: baseUrlInput?.value.trim() || window.CONFIG.DEFAULT_OMNIROUTE_BASE_URL,
-      model: modelInput?.value.trim() || window.CONFIG.DEFAULT_MODEL
-    };
-
-    window.StateManager.saveProfileConfig(profile.id, config);
-    this.refreshCurrentProfileUI();
-    this.closeSettingsModal();
-
-    alert('Đã lưu cấu hình hồ sơ và API thành công!');
   },
 
   escapeHTML(str) {

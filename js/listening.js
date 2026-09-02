@@ -62,7 +62,7 @@ const ListeningModule = {
     `;
   },
 
-  async generateNewExercise() {
+  async generateNewExercise(forcedSeedId) {
     if (this.isLoading) return;
 
     const generateBtn = document.getElementById('btn-generate-listening');
@@ -71,13 +71,19 @@ const ListeningModule = {
     const level = profile ? profile.level : 'B1';
 
     const seedSelect = document.getElementById('listening-seed-select');
-    const selectedSeedId = seedSelect ? seedSelect.value : '';
+    const targetSeedId = (forcedSeedId !== undefined && forcedSeedId !== null) ? forcedSeedId : (seedSelect ? seedSelect.value : '');
 
     let seedText = null;
-    if (selectedSeedId) {
+    let seedTitle = null;
+
+    if (targetSeedId) {
       const seeds = window.StateManager.getSeeds();
-      const seedObj = seeds.find(s => s.id === selectedSeedId);
-      if (seedObj) seedText = seedObj.transcript;
+      const seedObj = seeds.find(s => s.id === targetSeedId);
+      if (seedObj) {
+        seedText = seedObj.transcript;
+        seedTitle = seedObj.title;
+        if (seedSelect) seedSelect.value = targetSeedId;
+      }
     }
 
     this.isLoading = true;
@@ -94,7 +100,7 @@ const ListeningModule = {
         <div class="eval-loading-card">
           <div class="spinner"></div>
           <h4>AI đang biên soạn đoạn audio tiếng Pháp chuẩn ${level}...</h4>
-          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.35rem;">Tạo văn bản phát thanh và bộ câu hỏi trắc nghiệm Compréhension de l'oral</p>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.35rem;">${seedTitle ? 'Bám sát văn bản từ kho đề: ' + this.escapeHTML(seedTitle) : 'Tạo văn bản phát thanh và bộ câu hỏi trắc nghiệm Compréhension de l\'oral'}</p>
         </div>
       `;
     }
@@ -102,7 +108,8 @@ const ListeningModule = {
     try {
       this.currentExercise = await window.AIService.generateListeningExercise({
         level,
-        seedText
+        seedText,
+        seedTitle
       });
       this.renderExercise();
       // Auto-play audio once ready

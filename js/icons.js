@@ -64,6 +64,9 @@ const Icons = {
       micCheck: `<svg ${commonAttr}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="8" x2="16" y1="22" y2="22"/><path d="m16 8 2 2 4-4"/></svg>`,
       zap: `<svg ${commonAttr}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
       badgeCheck: `<svg ${commonAttr}><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>`,
+      navigation: `<svg ${commonAttr}><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`,
+      briefcase: `<svg ${commonAttr}><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
+      home: `<svg ${commonAttr}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
       frenchCockade: `<svg class="svg-icon ${className}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="10" fill="#002395"/>
         <circle cx="12" cy="12" r="7" fill="#FFFFFF"/>

@@ -115,6 +115,20 @@ async function runTests() {
   assert.ok(vnTutorReply.frenchReply.includes('Pouvez-vous corriger ma prononciation'), 'Gợi ý đúng câu tiếng Pháp mẫu khi học viên hỏi tiếng Việt');
   assert.ok(vnTutorReply.phonetics.length >= 2, 'Cung cấp thẻ phát âm IPA và mẹo khẩu hình miệng');
 
+  // Test 4.1b: Kiểm tra câu nói tiếng Việt về ăn uống -> Không được gợi ý lạc đề (như xe đạp)
+  const vnFoodReply = await AIService.chatWithTutor('Tôi sẽ ăn bây giờ', [], 'B1');
+  assert.ok(vnFoodReply.frenchReply.includes('manger') || vnFoodReply.frenchReply.includes('repas'), 'Phản hồi tiếng Pháp về chủ đề ăn uống');
+  assert.ok(!vnFoodReply.feedbackVi.includes('xe đạp'), 'Không được gợi ý lạc đề sang xe đạp khi người học nói về ăn uống');
+  assert.ok(vnFoodReply.phonetics.some(p => p.word.includes('manger') || p.word.includes('maintenant')), 'Chữa phát âm đúng từ trong câu (manger/maintenant)');
+
+  // Test 4.1c: Kiểm tra câu nói tiếng Pháp về du lịch -> Bắt đúng chủ đề du lịch
+  const frTravelReply = await AIService.chatWithTutor('J\'aimerais voyager en France et visiter Paris pendant mes vacances.', [], 'B1');
+  assert.ok(frTravelReply.frenchReply.includes('destination') || frTravelReply.frenchReply.includes('voyage'), 'AI phản hồi theo đúng ngữ cảnh du lịch');
+  assert.ok(!frTravelReply.feedbackVi.includes('xe đạp'), 'Không gợi ý sai chủ đề');
+
+  // Test 4.1d: Kiểm tra danh mục các chủ đề hội thoại phong phú
+  assert.ok(CONFIG.SPEAKING_TOPICS && CONFIG.SPEAKING_TOPICS.length >= 6, 'Có sẵn ít nhất 6 chủ đề hội thoại phong phú');
+
   // Test 4.2: Barem DELF B1 - Thí sinh nói Tiếng Việt -> 0.0 / 25 điểm
   const vnEvalResult = await AIService.evaluateSpeakingSession([
     { userText: 'bạn có thể chỉnh phát âm cho tôi không', frenchReply: '...' }
@@ -153,7 +167,25 @@ async function runTests() {
   assert.ok(listeningEx.passage, 'Bài nghe có đoạn transcript tiếng Pháp');
   assert.strictEqual(listeningEx.questions.length, 3, 'Bài nghe có đủ 3 câu trắc nghiệm');
 
-  console.log('  ✅ AIService: Phản xạ hội thoại, chấm điểm Grille DELF B1 (/25) và sinh đề Đọc/Nghe chính xác.');
+  // Test 4.5: Khắc phục lỗi sinh bài từ Kho đề thật nhảy sang bài xe đạp
+  const customArticle = "Le festival d'Avignon est l'une des plus importantes manifestations internationales du spectacle vivant contemporain.";
+  const seedReadingEx = await AIService.generateReadingExercise({
+    level: 'B1',
+    seedText: customArticle,
+    seedTitle: "Festival d'Avignon"
+  });
+  assert.strictEqual(seedReadingEx.passage, customArticle, 'Bài đọc sinh từ kho đề phải giữ nguyên vẹn 100% văn bản bài báo được chọn');
+  assert.strictEqual(seedReadingEx.questions.length, 3, 'Bài đọc từ kho đề có 3 câu trắc nghiệm');
+
+  const seedListeningEx = await AIService.generateListeningExercise({
+    level: 'B1',
+    seedText: customArticle,
+    seedTitle: "Festival d'Avignon"
+  });
+  assert.strictEqual(seedListeningEx.passage, customArticle, 'Bài nghe sinh từ kho đề phải giữ nguyên vẹn 100% văn bản bài báo được chọn');
+  assert.strictEqual(seedListeningEx.questions.length, 3, 'Bài nghe từ kho đề có 3 câu trắc nghiệm');
+
+  console.log('  ✅ AIService: Phản xạ hội thoại, chấm điểm Grille DELF B1 (/25) và bảo toàn chính xác bài báo khi sinh từ Kho Đề Thật.');
 
   // Test 5: French Phonetics & Pronunciation Scorer
   console.log('\n5. Kiểm tra Hệ thống Sửa Phát Âm & Ngữ Âm Chuyên Sâu (Phonétique & Scorer):');

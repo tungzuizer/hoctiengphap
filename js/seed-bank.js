@@ -154,29 +154,31 @@ const SeedBankModule = {
   },
 
   useForReading(seedId) {
-    const tabBtn = document.querySelector('.nav-tab[data-tab="reading"]');
-    if (tabBtn) tabBtn.click();
+    if (window.App && window.App.switchTab) {
+      window.App.switchTab('reading');
+    } else {
+      const tabBtn = document.querySelector('.nav-tab[data-tab="reading"]');
+      if (tabBtn) tabBtn.click();
+    }
 
-    setTimeout(() => {
-      const selectEl = document.getElementById('reading-seed-select');
-      if (selectEl) {
-        selectEl.value = seedId;
-        window.ReadingModule.generateNewExercise();
-      }
-    }, 100);
+    if (window.ReadingModule) {
+      window.ReadingModule.populateSeedOptions();
+      window.ReadingModule.generateNewExercise(seedId);
+    }
   },
 
   useForListening(seedId) {
-    const tabBtn = document.querySelector('.nav-tab[data-tab="listening"]');
-    if (tabBtn) tabBtn.click();
+    if (window.App && window.App.switchTab) {
+      window.App.switchTab('listening');
+    } else {
+      const tabBtn = document.querySelector('.nav-tab[data-tab="listening"]');
+      if (tabBtn) tabBtn.click();
+    }
 
-    setTimeout(() => {
-      const selectEl = document.getElementById('listening-seed-select');
-      if (selectEl) {
-        selectEl.value = seedId;
-        window.ListeningModule.generateNewExercise();
-      }
-    }, 100);
+    if (window.ListeningModule) {
+      window.ListeningModule.populateSeedOptions();
+      window.ListeningModule.generateNewExercise(seedId);
+    }
   },
 
   escapeHTML(str) {

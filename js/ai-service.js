@@ -178,17 +178,28 @@ const AIService = {
 
   // 1. Module Luyện Nói: Trò chuyện với giáo viên bản ngữ + Nhận xét lỗi + Sửa phát âm & Ngữ âm (Phonétique)
   async chatWithTutor(userFrenchText, conversationHistory = [], level = 'B1') {
-    const systemPrompt = `Bạn là giáo viên tiếng Pháp bản ngữ kiêm chuyên gia luyện ngữ âm & phát âm (Phonétique & Prononciation) cho học viên Việt Nam trình độ [${level}].
-Yêu cầu bắt buộc:
-1. Chỉ dùng từ vựng, cấu trúc câu và các thì ngữ pháp hoàn toàn phù hợp với chuẩn trình độ CEFR [${level}].
-2. Luôn trả lời bằng TIẾNG PHÁP một cách ngắn gọn, thân thiện, tự nhiên và đặt thêm 1 câu hỏi gợi mở để học viên tiếp tục nói.
-3. Sau câu trả lời tiếng Pháp, hãy xuống 2 dòng, ghi chính xác "Nhận xét:" rồi phân tích ngắn gọn 1-2 lỗi từ vựng, ngữ pháp hoặc diễn đạt mà học viên vừa mắc phải trong câu vừa rồi bằng TIẾNG VIỆT (nếu học viên nhập tiếng Việt, hãy dịch câu đó sang tiếng Pháp chuẩn và giải thích cách nói).
-4. Xuống tiếp 2 dòng, ghi chính xác "Phát âm & Ngữ âm:" rồi hướng dẫn chi tiết bằng TIẾNG VIỆT về các điểm phát âm trong câu của học viên:
-   - Liệt kê 1-3 từ/cụm từ quan trọng kèm phiên âm IPA chuẩn Pháp (ví dụ: "beaucoup" /boku/, "les‿amis" /lez‿ami/, "tu" /ty/, "prononciation" /pʁɔnɔ̃sjasjɔ̃/).
+    const systemPrompt = `Bạn là giáo viên tiếng Pháp bản ngữ kiêm chuyên gia sư phạm & chỉnh ngữ âm (Phonétique & Prononciation) cho học viên Việt Nam trình độ [${level}].
+
+QUY TẮC BẮT BUỘC:
+1. ĐA DẠNG HÓA CHỦ ĐỀ & PHẢN HỒI THEO ĐÚNG NGỮ CẢNH HỌC VIÊN NÓI:
+   - Hãy chủ động bắt nhịp theo ĐÚNG CHỦ ĐỀ mà học viên vừa nói (ví dụ: ăn uống/ẩm thực, công việc, học tập, du lịch, thói quen sinh hoạt, cảm xúc, gia đình, sở thích, kế hoạch tương lai...).
+   - Tuyệt đối không lặp lại một câu hỏi rập khuôn hay chỉ hỏi về hoạt động cuối tuần. Luôn trả lời bằng TIẾNG PHÁP một cách tự nhiên, sinh động, chuẩn CEFR [${level}] và đặt thêm 1 câu hỏi mở tiếp theo gắn liền với nội dung học viên vừa chia sẻ để duy trì mạch hội thoại.
+
+2. ĐỘ CHÍNH XÁC TUYỆT ĐỐI KHI NHẬN XÉT NGỮ PHÁP & TỪ VỰNG:
+   - Sau câu trả lời tiếng Pháp, hãy xuống 2 dòng, ghi chính xác "Nhận xét:" rồi giải thích ngắn gọn bằng TIẾNG VIỆT.
+   - CHỈ ĐƯỢC NHẬN XÉT VÀ GỢI Ý DỰA TRÊN CÁC TỪ VÀ CẤU TRÚC XUẤT HIỆN TRONG CÂU HỌC VIÊN VỪA NÓI.
+   - TUYỆT ĐỐI KHÔNG gợi ý hay sửa các từ vựng/hoạt động không liên quan (ví dụ học viên nói về ăn uống, đi lại thì KHÔNG ĐƯỢC nhắc đến xe đạp hay hoạt động khác không có trong câu).
+   - Nếu học viên nói đúng: Khen ngợi và phân tích cấu trúc hay mà học viên đã dùng trong câu đó.
+   - Nếu học viên nói sai (chia sai thì, sai mạo từ, sai giống danh từ): Chỉ ra đúng từ sai và sửa lại câu chuẩn xác.
+   - Nếu học viên nhập tiếng Việt: Dịch sang câu tiếng Pháp tự nhiên nhất và hướng dẫn cấu trúc câu tương đương.
+
+3. PHÂN TÍCH PHÁT ÂM & NGỮ ÂM (PHONÉTIQUE) CHÍNH XÁC THEO CÂU CỦA HỌC VIÊN:
+   - Xuống tiếp 2 dòng, ghi chính xác "Phát âm & Ngữ âm:".
+   - CHỈ trích xuất 1-3 từ/cụm từ THỰC SỰ CÓ TRONG CÂU của học viên để phân tích.
    - Phân tích cạm bẫy phát âm người Việt hay mắc (âm câm lettre muette, âm mũi nasale [ɑ̃]/[ɔ̃]/[ɛ̃], âm [y] vs [u], âm R rung họng [ʁ], nối âm liaison bắt buộc).
-   - Hướng dẫn khẩu hình miệng, vị trí lưỡi và cách bật hơi để phát âm chuẩn người Paris.
+   - Hướng dẫn khẩu hình miệng, vị trí lưỡi và cách bật hơi chuẩn người Paris.
    Định dạng mỗi dòng phát âm:
-   - [Từ/Cụm từ] (/phiên âm IPA/): Lời khuyên phát âm & khẩu hình cụ thể.`;
+   - [Từ/Cụm từ trong câu] (/phiên âm IPA/): Lời khuyên phát âm & khẩu hình cụ thể.`;
 
     const messages = [];
     // Include last 6 turns for context
@@ -368,23 +379,31 @@ Trả về JSON:
   },
 
   // 3. Module Luyện Đọc: Sinh đoạn văn + 3 câu hỏi trắc nghiệm
-  async generateReadingExercise({ level = 'B1', seedText = null, topic = null }) {
+  async generateReadingExercise({ level = 'B1', seedText = null, seedTitle = null, topic = null }) {
     let contextInstruction = '';
-    if (seedText) {
-      contextInstruction = `Dựa trên văn bản mẫu thực tế sau đây:\n"""\n${seedText}\n"""\nHãy viết một bài đọc MỚI HOÀN TOÀN (không sao chép nguyên văn), mang phong cách báo chí/đời sống tương tự, chuẩn trình độ CEFR [${level}].`;
+    if (seedText && seedText.trim()) {
+      contextInstruction = `DƯỚI ĐÂY LÀ BÀI BÁO / VĂN BẢN TIẾNG PHÁP THỰC TẾ ĐƯỢC CHỌN TỪ KHO ĐỀ (${seedTitle || 'Tài liệu chuẩn'}):
+"""
+${seedText.trim()}
+"""
+YÊU CẦU BẮT BUỘC:
+1. Hãy sử dụng CHÍNH XÁC nội dung bài báo / văn bản trên làm bài đọc (thuộc tính "passage"). Bạn có thể giữ nguyên văn hoặc tinh chỉnh nhẹ cho chuẩn độ dài đọc hiểu DELF trình độ [${level}] nhưng TUYỆT ĐỐI KHÔNG tự ý thay đổi sang một chủ đề hay bài viết khác!
+2. Đặt "title" và "topic" bám sát đúng bài báo / văn bản trên.
+3. Soạn 3 câu hỏi trắc nghiệm Compréhension écrite (mỗi câu 4 đáp án A, B, C, D) kiểm tra trực tiếp các thông tin, sự kiện, chi tiết có trong bài báo trên.
+4. Kèm lời giải thích "explanation" chi tiết bằng tiếng Việt dẫn chứng trích đoạn bài báo.`;
     } else {
-      contextInstruction = `Hãy tạo một đoạn văn đọc hiểu tiếng Pháp mới về chủ đề: ${topic || 'Đời sống, văn hóa hoặc xã hội Pháp'}, chuẩn trình độ CEFR [${level}]. Độ dài khoảng 80-150 từ.`;
+      contextInstruction = `Hãy tạo một đoạn văn đọc hiểu tiếng Pháp mới về chủ đề: ${topic || 'Đời sống, văn hóa, công nghệ hoặc xã hội Pháp'}, chuẩn trình độ CEFR [${level}]. Độ dài khoảng 100-160 từ.
+Sau đoạn văn, tạo 3 câu hỏi trắc nghiệm kiểm tra độ hiểu bài (Compréhension écrite). Mỗi câu hỏi có 4 lựa chọn (A, B, C, D).`;
     }
 
-    const systemPrompt = `Bạn là chuyên gia biên soạn đề thi DELF tiếng Pháp.
+    const systemPrompt = `Bạn là chuyên gia biên soạn đề thi DELF tiếng Pháp (Compréhension écrite).
 ${contextInstruction}
 
-Sau đoạn văn, tạo 3 câu hỏi trắc nghiệm kiểm tra độ hiểu bài (Compréhension écrite). Mỗi câu hỏi có 4 lựa chọn (A, B, C, D).
 Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
 {
   "title": "Tiêu đề bài đọc tiếng Pháp",
   "topic": "Chủ đề",
-  "passage": "Toàn bộ đoạn văn tiếng Pháp...",
+  "passage": "Toàn bộ đoạn văn bài đọc tiếng Pháp...",
   "questions": [
     {
       "id": 1,
@@ -403,8 +422,8 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
 
     const rawResponse = await this.request({
       systemPrompt,
-      messages: [{ role: 'user', content: 'Hãy tạo bài đọc hiểu trắc nghiệm DELF mới.' }],
-      temperature: 0.6,
+      messages: [{ role: 'user', content: seedText ? 'Hãy tạo bài đọc hiểu trắc nghiệm dựa trên chính xác văn bản bài báo đã cung cấp.' : 'Hãy tạo bài đọc hiểu trắc nghiệm DELF mới.' }],
+      temperature: 0.3,
       jsonMode: true
     });
 
@@ -412,18 +431,26 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
   },
 
   // 4. Module Luyện Nghe: Sinh đoạn hội thoại/bài phát thanh + trắc nghiệm
-  async generateListeningExercise({ level = 'B1', seedText = null, topic = null }) {
+  async generateListeningExercise({ level = 'B1', seedText = null, seedTitle = null, topic = null }) {
     let contextInstruction = '';
-    if (seedText) {
-      contextInstruction = `Dựa trên chủ đề và phong cách của văn bản thực tế sau:\n"""\n${seedText}\n"""\nHãy soạn một đoạn văn hoặc bài phỏng vấn/tin tức ngắn (60-120 từ) phù hợp để đọc to luyện nghe tiếng Pháp cho học viên trình độ [${level}].`;
+    if (seedText && seedText.trim()) {
+      contextInstruction = `DƯỚI ĐÂY LÀ TRANSCRIPT BẢN TIN / PHÓNG SỰ THỰC TẾ (${seedTitle || 'Tài liệu nghe'}):
+"""
+${seedText.trim()}
+"""
+YÊU CẦU BẮT BUỘC:
+1. Hãy sử dụng CHÍNH XÁC nội dung transcript này (hoặc biên tập tự nhiên, độ dài 70-150 từ để giọng đọc AI SpeechSynthesis phát âm rõ ràng) làm bài nghe (thuộc tính "passage"). TUYỆT ĐỐI KHÔNG tự ý đổi sang chủ đề khác!
+2. Đặt "title" và "topic" bám sát transcript trên.
+3. Soạn 3 câu hỏi trắc nghiệm Compréhension de l'oral (mỗi câu 4 đáp án A, B, C, D) kiểm tra khả năng nghe hiểu thông tin chi tiết từ đoạn âm thanh này.
+4. Kèm lời giải thích "explanation" bằng tiếng Việt.`;
     } else {
-      contextInstruction = `Hãy soạn một đoạn tin tức radio hoặc hội thoại tiếng Pháp đời sống ngắn gọn (60-120 từ) phù hợp để luyện nghe trình độ [${level}] về chủ đề ${topic || 'Công việc, du lịch hoặc cuộc sống hàng ngày'}.`;
+      contextInstruction = `Hãy soạn một đoạn tin tức radio hoặc hội thoại tiếng Pháp đời sống ngắn gọn (70-130 từ) phù hợp để luyện nghe trình độ [${level}] về chủ đề ${topic || 'Công việc, du lịch, khoa học hoặc cuộc sống hàng ngày'}.
+Kèm theo đó là 3 câu hỏi trắc nghiệm kiểm tra khả năng nghe hiểu.`;
     }
 
     const systemPrompt = `Bạn là chuyên gia biên soạn bài thi Nghe DELF (Compréhension de l'oral).
 ${contextInstruction}
 
-Kèm theo đó là 3 câu hỏi trắc nghiệm kiểm tra khả năng nghe hiểu. Mỗi câu hỏi có 4 lựa chọn.
 Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
 {
   "title": "Tiêu đề bài nghe",
@@ -439,7 +466,7 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
         "Lựa chọn C",
         "Lựa chọn D"
       ],
-      "correct_index": 1,
+      "correct_index": 0,
       "explanation": "Giải thích chi tiết bằng tiếng Việt dựa vào nội dung bài nghe."
     }
   ]
@@ -447,8 +474,8 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
 
     const rawResponse = await this.request({
       systemPrompt,
-      messages: [{ role: 'user', content: 'Hãy tạo bài luyện nghe trắc nghiệm DELF mới.' }],
-      temperature: 0.6,
+      messages: [{ role: 'user', content: seedText ? 'Hãy tạo bài nghe hiểu trắc nghiệm dựa trên đúng transcript đã cung cấp.' : 'Hãy tạo bài luyện nghe trắc nghiệm DELF mới.' }],
+      temperature: 0.3,
       jsonMode: true
     });
 
@@ -467,117 +494,213 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
 
     // If request was for Reading exercise
     if (systemPrompt.includes('Compréhension écrite') || systemPrompt.includes('bài đọc hiểu')) {
-      return JSON.stringify({
-        title: 'Le vélo en ville : un nouveau mode de vie',
-        topic: 'Giao thông & Đô thị',
-        passage: 'Depuis quelques năm, le vélo devient le moyen de transport préféré des habitants des grandes villes. Pratique, écologique et économique, il permet d\'éviter les embouteillages aux heures de pointe. Les municipalités aménagent de nouvelles pistes cyclables sécurisées pour encourager cette pratique.',
-        questions: [
-          {
-            id: 1,
-            question: 'Pourquoi les citadins choisissent-ils le vélo ?',
-            options: [
-              'Parce qu\'il permet d\'éviter les embouteillages.',
-              'Parce qu\'il est plus rapide que l\'avion.',
-              'Parce que les voitures sont totalement interdites.',
-              'Parce qu\'il n\'y a plus de bus.'
-            ],
-            correct_index: 0,
-            explanation: 'Đoạn văn có câu "il permet d\'éviter les embouteillages aux heures de pointe" (giúp tránh tắc đường giờ cao điểm).'
-          },
-          {
-            id: 2,
-            question: 'Que font les municipalités pour encourager les cyclistes ?',
-            options: [
-              'Elles vendent des vélos gratuits.',
-              'Elles créent de nouvelles pistes cyclables sécurisées.',
-              'Elles ferment toutes les routes.',
-              'Elles organisent des courses de vélo.'
-            ],
-            correct_index: 1,
-            explanation: 'Trong bài có câu "Les municipalités aménagent de nouvelles pistes cyclables sécurisées".'
-          },
-          {
-            id: 3,
-            question: 'Quel est l\'un des avantages du vélo mentionnés dans le texte ?',
-            options: [
-              'Il est très cher.',
-              'Il est écologique et économique.',
-              'Il est réservé aux sportifs professionnels.',
-              'Il fonctionne à l\'électricité uniquement.'
-            ],
-            correct_index: 1,
-            explanation: 'Đoạn đầu nêu rõ các ưu điểm: "Pratique, écologique et économique".'
-          }
-        ]
-      });
+      return this._mockReadingExercise(systemPrompt);
     }
 
     // If request was for Listening exercise
     if (systemPrompt.includes('Compréhension de l\'oral') || systemPrompt.includes('luyện nghe')) {
-      return JSON.stringify({
-        title: 'Une invitation au restaurant',
-        topic: 'Đời sống & Ẩm thực',
-        passage: 'Bonjour Sophie ! Ce soir, avec quelques collègues du bureau, nous allons dîner dans un nouveau restaurant italien près de la gare. Nous avons réservé une table pour vingt heures. Est-ce que tu es libre pour venir với chúng tôi ? Fais-moi savoir avant seize heures pour que je confirme le nombre de personnes.',
-        questions: [
-          {
-            id: 1,
-            question: 'Où les collègues vont-ils dîner ce soir ?',
-            options: [
-              'Dans un restaurant français au centre-ville.',
-              'Dans un restaurant italien près de la gare.',
-              'Chez Sophie.',
-              'Au bureau.'
-            ],
-            correct_index: 1,
-            explanation: 'Người nói mời: "dans un nouveau restaurant italien près de la gare".'
-          },
-          {
-            id: 2,
-            question: 'À quelle heure est la réservation ?',
-            options: ['18h00', '19h00', '20h00', '21h00'],
-            correct_index: 2,
-            explanation: 'Người nói thông báo: "Nous avons réservé une table pour vingt heures" (20h00).'
-          },
-          {
-            id: 3,
-            question: 'Avant quelle heure Sophie doit-elle répondre ?',
-            options: ['12h00', '15h00', '16h00', '19h00'],
-            correct_index: 2,
-            explanation: 'Người nói dặn: "Fais-moi savoir avant seize heures" (trước 16h00).'
-          }
-        ]
-      });
+      return this._mockListeningExercise(systemPrompt);
     }
 
     // Default conversational response with comprehensive phonetics & tips
     const lastUserMsg = messages && messages.length > 0 ? (messages[messages.length - 1].content || '') : '';
-    // Dynamic Vietnamese Detection: characters unique to Vietnamese (tones, horns, hooks, d-bar)
-    // Note: French uses à, â, é, è, ê, ë, î, ï, ô, ù, û, ü, ç which are NOT treated as Vietnamese.
-    const vietnamesePattern = /[ăắằẳẵặấầẩẫậếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúủũụứừửữựýỳỷỹỵđảãạẻẽẹỉĩịỏõọủũụỷỹỵ]/i;
-    const vietnameseCommonWords = /\b(tôi|bạn|chúng\s*tôi|anh|chị|không|có\s*thể|chỉnh|phát\s*âm|tiếng\s*việt|giúp|với|nhé|được|luyện\s*tập|xin\s*chào|cảm\s*ơn)\b/i;
-    const isVietnameseInput = vietnamesePattern.test(lastUserMsg) || vietnameseCommonWords.test(lastUserMsg);
+    return this._generateContextualTutorReply(lastUserMsg, 'B1');
+  },
 
+  // Intelligent Contextual Tutor Response Generator for Simulation & Offline Mode
+  _generateContextualTutorReply(userText = '', level = 'B1') {
+    const cleanText = userText.trim();
+    const lower = cleanText.toLowerCase();
+
+    // Dynamic Vietnamese Detection: characters unique to Vietnamese (tones, horns, hooks, d-bar)
+    const vietnamesePattern = /[ăắằẳẵặấầẩẫậếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúủũụứừửữựýỳỷỹỵđảãạẻẽẹỉĩịỏõọủũụỷỹỵ]/i;
+    const vietnameseCommonWords = /\b(tôi|bạn|chúng\s*tôi|chúng\s*ta|anh|chị|không|có\s*thể|chỉnh|phát\s*âm|tiếng\s*việt|giúp|với|nhé|được|luyện\s*tập|xin\s*chào|cảm\s*ơn|ăn|uống|đói|du\s*lịch|đi\s*chơi|làm\s*việc|học|bây\s*giờ)\b/i;
+    const isVietnameseInput = vietnamesePattern.test(cleanText) || vietnameseCommonWords.test(cleanText);
+
+    // ================= 1. XỬ LÝ KHI HỌC VIÊN NHẬP TIẾNG VIỆT =================
     if (isVietnameseInput) {
-      return `Bien sûr ! Avec grand plaisir. En français, pour dire "bạn có thể chỉnh phát âm cho tôi không", vous pouvez dire : « Pouvez-vous corriger ma prononciation s'il vous plaît ? » Répétez après moi cette phrase !
+      // 1.1 Yêu cầu sửa/chỉnh phát âm
+      if (/chỉnh|sửa|phát\s*âm|prononciation/i.test(lower)) {
+        return `Bien sûr ! Avec grand plaisir. En français, pour dire "bạn có thể chỉnh phát âm cho tôi không", vous pouvez dire : « Pouvez-vous corriger ma prononciation s'il vous plaît ? » Répétez après moi cette phrase !
 
 Nhận xét:
-Khi muốn nhờ giáo viên sửa phát âm, trong tiếng Pháp bạn hãy dùng cấu trúc lịch sự: "Pouvez-vous corriger ma prononciation ?" (hoặc "Peux-tu corriger ma prononciation ?"). Hãy thử bấm nút Micro và nói câu tiếng Pháp này nhé!
+Khi muốn nhờ giáo viên sửa phát âm, trong tiếng Pháp bạn hãy dùng cấu trúc lịch sự: "Pouvez-vous corriger ma prononciation ?" (hoặc thân mật: "Peux-tu corriger ma prononciation ?"). Hãy thử bấm nút Micro và nói câu tiếng Pháp này nhé!
 
 Phát âm & Ngữ âm:
 - Pouvez-vous (/puve vu/): Âm [u] trong "pouvez" chu tròn môi sâu, nối âm nhẹ giữa -z và vous.
 - corriger (/kɔʁiʒe/): Chú ý âm [ʁ] rung nhẹ ở đáy cổ họng và âm [ʒ] rung mềm.
 - prononciation (/pʁɔnɔ̃sjasjɔ̃/): Có 2 âm mũi [ɔ̃] ("on" và "on"), hạ hàm mềm để hơi thoát lên khoang mũi.`;
-    }
+      }
 
-    return `Bonjour ! C'est un plaisir d'échanger avec vous en français. Votre phrase est très claire. Pouvez-vous me parler un peu plus de vos activités préférées pendant le week-end ?
+      // 1.2 Chủ đề ăn uống ("tôi sẽ ăn bây giờ", "ăn cơm", "đói", "món ăn")
+      if (/ăn|uống|đói|cơm|bữa|món/i.test(lower)) {
+        return `Bon appétit ! En français, pour exprimer cela, vous pouvez dire : « Je vais manger maintenant. » ou « J'ai faim, je vais préparer mon repas. » Qu'avez-vous envie de déguster de bon aujourd'hui ?
 
 Nhận xét:
-Bạn đã diễn đạt ý tốt. Hãy chú ý chia động từ ở ngôi thứ nhất (Je) và sử dụng mạo từ phù hợp khi nói về sở thích nhé. (Ví dụ: "J'aime faire du vélo").
+Để diễn đạt ý "Tôi sẽ ăn bây giờ", trong tiếng Pháp bạn dùng thì tương lai gần (Futur proche): [Je vais + động từ nguyên thể (manger) + maintenant]. Cấu trúc này rất thông dụng và tự nhiên trong giao tiếp hằng ngày.
 
 Phát âm & Ngữ âm:
-- Bonjour (/bɔ̃ʒuʁ/): Chú ý âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ], không phát âm thành "bông-dua".
-- activité (/aktivite/): Âm "é" phát âm sắc và dứt khoát, không kéo dài như tiếng Việt.
-- faire du vélo (/fɛʁ dy velo/): Chữ "du" mang âm [y], hãy đặt khẩu hình chữ "i" rồi chu tròn môi như huýt sáo.`;
+- Je vais (/ʒə vɛ/): Âm [ʒə] phát âm nhẹ, âm [ɛ] mở miệng tự nhiên như âm "e" tiếng Việt.
+- manger (/mɑ̃ʒe/): Âm mũi [ɑ̃] mở rộng khẩu hình miệng, âm [ʒ] rung nhẹ đầu lưỡi, đuôi "-er" đọc là [e].
+- maintenant (/mɛ̃tnɑ̃/): Phân biệt rõ âm mũi [ɛ̃] ("main") và âm mũi [ɑ̃] ("nant"), không khép môi tạo âm "n".`;
+      }
+
+      // 1.3 Chủ đề du lịch ("du lịch", "kỳ nghỉ", "đi chơi", "paris", "pháp")
+      if (/du\s*lịch|kỳ\s*nghỉ|đi\s*chơi|paris|pháp/i.test(lower)) {
+        return `Merveilleux ! Pour parler de vos voyages en français, vous pouvez dire : « J'aimerais faire un voyage en France. » ou « Je voudrais partir en vacances. » Quel pays aimeriez-vous visiter prochainement ?
+
+Nhận xét:
+Để diễn đạt mong muốn đi du lịch, bạn hãy dùng cấu trúc điều kiện lịch sự: "J'aimerais voyager" hoặc "Je voudrais visiter...". Chú ý giới từ: "en France" (nước giống cái), "au Vietnam" (nước giống đực).
+
+Phát âm & Ngữ âm:
+- voyager (/vwajaʒe/): Chú ý tổ hợp âm [vwa] và đuôi "-er" phát âm là [e].
+- vacances (/vakɑ̃s/): Âm mũi [ɑ̃] mở rộng khẩu hình, đuôi "-ces" phát âm rõ âm gió [s].
+- visiter (/vizite/): Chữ "s" đứng giữa 2 nguyên âm phát âm thành [z].`;
+      }
+
+      // 1.4 Chủ đề công việc & học tập ("đi làm", "công việc", "học tập", "trường học")
+      if (/công\s*việc|làm\s*việc|đi\s*làm|học|trường|công\s*ty/i.test(lower)) {
+        return `Très bien ! Pour présenter votre travail ou vos études, vous pouvez dire : « Actuellement, je travaille dans une entreprise. » ou « Je suis étudiant(e). » Dans quel domaine travaillez-vous ?
+
+Nhận xét:
+Khi giới thiệu nghề nghiệp trong tiếng Pháp, không dùng mạo từ sau động từ "être" (Ví dụ: "Je suis étudiant", không nói "Je suis un étudiant").
+
+Phát âm & Ngữ âm:
+- travail (/tʁavaj/): Chú ý âm [ʁ] rung đáy họng và âm [j] (yod) ở đuôi.
+- étudiant (/etydjɑ̃/): Âm [y] trong "é-tu" (khẩu hình chữ i nhưng chu tròn môi) và âm mũi [ɑ̃] ở cuối.
+- entreprise (/ɑ̃tʁəpʁiz/): Âm mũi [ɑ̃] ở đầu và chữ "s" phát âm thành [z].`;
+      }
+
+      // 1.5 Lời chào & giới thiệu ("xin chào", "tôi tên là", "giới thiệu")
+      if (/chào|tên\s*là|giới\s*thiệu/i.test(lower)) {
+        return `Bonjour ! Enchanté de faire votre connaissance. En français, vous pouvez dire : « Bonjour, je m'appelle Trang et je suis ravie d'apprendre le français. » Répétez après moi cette phrase !
+
+Nhận xét:
+Cấu trúc giới thiệu bản thân chuẩn: "Bonjour, je m'appelle [Tên]". Để thể hiện sự lịch sự và vui mừng khi gặp gỡ, bạn có thể thêm "Enchanté(e)" hoặc "Ravi(e) de faire votre connaissance".
+
+Phát âm & Ngữ âm:
+- Bonjour (/bɔ̃ʒuʁ/): Âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ], không đọc thành "bông-dua".
+- je m'appelle (/ʒə mapɛl/): Âm [ʒə] phát âm nhẹ, âm "e" cuối là âm câm.
+- enchanté (/ɑ̃ʃɑ̃te/): Có 2 âm mũi [ɑ̃] mở rộng khẩu hình.`;
+      }
+
+      // 1.6 Tiếng Việt tổng quát khác
+      return `En français, pour exprimer votre idée, vous pouvez dire : « Bonjour ! Je souhaite m'exprimer en français avec vous. » Répétez après moi pour pratiquer votre expression orale !
+
+Nhận xét:
+Khi muốn bắt đầu giao tiếp bằng tiếng Pháp, bạn có thể dùng cấu trúc [Je souhaite + động từ nguyên thể] để diễn đạt nguyện vọng một cách lịch sự và tự nhiên.
+
+Phát âm & Ngữ âm:
+- Bonjour (/bɔ̃ʒuʁ/): Âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ].
+- français (/fʁɑ̃sɛ/): Âm mũi [ɑ̃] và đuôi "-ais" đọc là [ɛ], không đọc chữ "s" cuối.
+- s'exprimer (/sɛkspʁime/): Chú ý tổ hợp âm [spʁ] và đuôi "-er" đọc là [e].`;
+    }
+
+    // ================= 2. XỬ LÝ KHI HỌC VIÊN NÓI TIẾNG PHÁP =================
+    // 2.1 Chủ đề Ẩm thực & Bữa ăn (Food & Meals)
+    if (/manger|mange|d[iî]ner|d[eé]jeuner|repas|faim|cuisine|plat|restaurant|pain|fromage|chocolat|boire|caf[eé]|nourriture/i.test(lower)) {
+      return `Bon appétit ! C'est un sujet délicieux et très convivial. Qu'avez-vous prévu de déguster de bon aujourd'hui pour votre repas ?
+
+Nhận xét:
+Bạn đã diễn đạt về chủ đề ăn uống rất tự nhiên! Hãy lưu ý chia đúng động từ (manger, boire, préparer) và sử dụng mạo từ bộ phận (du, de la, des) khi nói về lượng thức ăn không đếm được.
+
+Phát âm & Ngữ âm:
+- manger (/mɑ̃ʒe/): Âm mũi [ɑ̃] mở rộng miệng, âm [ʒ] rung mềm, đuôi "-er" đọc là [e].
+- repas (/ʁəpa/): Âm [ʁ] rung đáy họng nhẹ, chữ "s" cuối là âm câm (lettre muette).
+- cuisine (/kɥizin/): Âm bán nguyên âm [ɥ] chu môi kết hợp [i], chữ "s" nằm giữa 2 nguyên âm đọc là [z].`;
+    }
+
+    // 2.2 Chủ đề Du lịch & Kỳ nghỉ (Travel & Holidays)
+    if (/voyage|voyager|vacances|paris|france|plage|pays|ville|visiter|train|avion|mer|montagne|s[eé]jour/i.test(lower)) {
+      return `C'est une magnifique destination ! Les voyages permettent de s'ouvrir à de nouvelles cultures. Quels sont les endroits que vous avez le plus envie de découvrir lors de votre prochain séjour ?
+
+Nhận xét:
+Ý tưởng về du lịch rất rõ ràng và sống động! Hãy chú ý sử dụng đúng giới từ đi với địa danh: "en France" (nước giống cái), "au Vietnam" (nước giống đực), "à Paris" (thành phố).
+
+Phát âm & Ngữ âm:
+- voyage (/vwajaʒ/): Phát âm rõ tổ hợp âm [vwa] và âm [ʒ] rung nhẹ ở đuôi.
+- vacances (/vakɑ̃s/): Âm mũi [ɑ̃] mở rộng khẩu hình, đuôi "-ces" phát âm rõ [s].
+- visiter (/vizite/): Chữ "s" nằm giữa 2 nguyên âm phát âm thành [z].`;
+    }
+
+    // 2.3 Chủ đề Công việc & Học tập (Work & Studies)
+    if (/travail|travailler|boulot|[eé]tude|[eé]tudiant|bureau|projet|[eé]cole|entreprise|coll[eè]gue|m[eé]tier/i.test(lower)) {
+      return `C'est un domaine très enrichissant et formateur ! Quels sont les projets ou les défis qui vous motivent le plus dans votre quotidien professionnel ou étudiant ?
+
+Nhận xét:
+Diễn đạt về công việc/học tập rất mạch lạc! Hãy chú ý hòa hợp giống và số của tính từ với danh từ, cũng như chia động từ chuẩn xác khi nói về nhóm làm việc.
+
+Phát âm & Ngữ âm:
+- travail (/tʁavaj/): Chú ý âm [ʁ] rung đáy họng và âm [j] (yod) ở đuôi.
+- étudiant (/etydjɑ̃/): Âm [y] trong "é-tu" (chu tròn môi giữ khẩu hình chữ i) và âm mũi [ɑ̃] ở cuối.
+- projet (/pʁɔʒɛ/): Âm tổ hợp [pʁ] và âm [ʒ], chữ "t" cuối là âm câm.`;
+    }
+
+    // 2.4 Chủ đề Thói quen & Cuộc sống thường nhật (Daily Routine)
+    if (/matin|soir|journ[eé]e|r[eé]veil|lever|dormir|habitude|quotidien|famille|maison|temps/i.test(lower)) {
+      return `Une bonne organisation quotidienne permet de rester serein et efficace ! Quelle est votre activité préférée pour bien commencer ou terminer votre journée ?
+
+Nhận xét:
+Bạn đã diễn đạt thói quen sinh hoạt rất tốt. Lưu ý các động từ phản thân chỉ sinh hoạt (se lever, se réveiller, se coucher) cần biến đổi đại từ phản thân tương ứng với chủ ngữ (je me lève, tu te lèves).
+
+Phát âm & Ngữ âm:
+- journée (/ʒuʁne/): Âm [ʒ] rung nhẹ, âm [u] chu sâu và đuôi "-ée" phát âm dứt khoát.
+- habitude (/abityd/): Chữ "h" câm hoàn toàn, âm [y] chu tròn môi như huýt sáo.
+- quotidien (/kɔtidjɛ̃/): Âm mũi [ɛ̃] ở cuối, bè môi sang hai bên.`;
+    }
+
+    // 2.5 Chủ đề Sở thích, Âm nhạc, Điện ảnh (Hobbies & Arts)
+    if (/musique|film|cin[eé]ma|lire|livre|guitare|piano|sport|courir|football|passion|loisir/i.test(lower)) {
+      return `C'est une excellente activité pour se détendre et faire le plein d'énergie ! Combien de fois par semaine avez-vous l'occasion de vous consacrer à cette passion ?
+
+Nhận xét:
+Từ vựng về sở thích được sử dụng rất tự nhiên. Hãy lưu ý dùng mạo từ xác định (le, la, les) sau các động từ chỉ cảm xúc và sở thích (aimer, adorer, préférer).
+
+Phát âm & Ngữ âm:
+- musique (/myzik/): Âm [y] trong "mu" kết hợp chữ "s" phát âm là [z].
+- cinéma (/sinema/): Chữ "c" đứng trước "i" phát âm là [s], không đọc là "ki-nê-ma".
+- passion (/pasjɔ̃/): Âm mũi [ɔ̃] chu môi tròn nhỏ.`;
+    }
+
+    // 2.6 Chủ đề Dự định & Bày tỏ quan điểm DELF B1 (Future Plans & Opinion)
+    if (/avis|pense|opinion|important|avenir|d[eé]veloppement|projet|parce que|conclusion|soci[eé]t[eé]|[eé]cologique/i.test(lower)) {
+      return `Votre argumentation est très claire et bien structurée ! C'est un sujet essentiel pour l'expression d'un point de vue au DELF B1. Quels exemples concrets pourriez-vous apporter pour illustrer votre idée ?
+
+Nhận xét:
+Lập luận rất tốt! Bạn đã sử dụng các liên từ liên kết (connecteurs logiques: à mon avis, en effet, par exemple, en conclusion) rất mạch lạc và đúng tiêu chí chấm điểm DELF B1.
+
+Phát âm & Ngữ âm:
+- avis (/avi/): Chữ "s" cuối là âm câm, không phát âm âm gió thừa.
+- opinion (/ɔpinjɔ̃/): Âm mũi [ɔ̃] ở cuối.
+- important (/ɛ̃pɔʁtɑ̃/): Âm mũi [ɛ̃] ở đầu và [ɑ̃] ở đuôi, chữ "t" cuối là âm câm.`;
+    }
+
+    // 2.7 Lời chào & Giới thiệu bản thân (Greetings & Intro)
+    if (/bonjour|salut|m'appelle|suis|enchant[eé]|bonsoir|coucou/i.test(lower)) {
+      return `Bonjour ! Enchanté d'échanger avec vous en français. Dites-moi, quel sujet aimeriez-vous aborder aujourd'hui (vos goûts, vos études, vos loisirs ou vos voyages) ?
+
+Nhận xét:
+Lời chào và giới thiệu rất chuẩn xác, lịch sự và tự nhiên. Hãy sẵn sàng cho các câu hỏi tiếp theo để cùng luyện phản xạ giao tiếp nhé!
+
+Phát âm & Ngữ âm:
+- Bonjour (/bɔ̃ʒuʁ/): Âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ], không đọc thành "bông-dua".
+- je m'appelle (/ʒə mapɛl/): Âm [ʒə] phát âm nhẹ, âm "e" cuối là âm câm.
+- enchanté (/ɑ̃ʃɑ̃te/): Có 2 âm mũi [ɑ̃] mở rộng khẩu hình.`;
+    }
+
+    // 2.8 Phản hồi tổng quát tiếng Pháp (Trích xuất từ vựng thực tế trong câu của học viên)
+    const rawWords = cleanText.split(/[\s,.'!?]+/).filter(w => w && w.length >= 3);
+    const sampleWord1 = rawWords[0] || 'français';
+    const sampleWord2 = rawWords[1] || 'expression';
+
+    return `C'est une remarque très intéressante ! Votre expression est fluide et agréable. Pouvez-vous m'en dire un peu plus à ce sujet ?
+
+Nhận xét:
+Câu nói của bạn rất mạch lạc và diễn đạt đúng ý. Hãy tiếp tục duy trì nhịp điệu tự nhiên này và chú ý mở rộng thêm chi tiết để câu nói thêm phong phú.
+
+Phát âm & Ngữ âm:
+- ${sampleWord1} : Hãy chú ý phát âm rõ các nguyên âm và giữ đúng vị trí âm câm nếu có ở cuối từ.
+- ${sampleWord2} : Giữ khẩu hình chuẩn xác và nối âm mượt mà với từ kế tiếp.`;
   },
 
   // Dynamic Barem Evaluator for Simulation / Demo Mode
@@ -696,6 +819,260 @@ Phát âm & Ngữ âm:
         frequent_errors: ['Chú ý mạo từ rút gọn']
       });
     }
+  },
+
+  _mockReadingExercise(systemPrompt) {
+    // 1. Check if seed text was provided inside systemPrompt
+    const seedMatch = systemPrompt.match(/"""\s*([\s\S]+?)\s*"""/);
+    if (seedMatch && seedMatch[1] && seedMatch[1].trim()) {
+      const originalText = seedMatch[1].trim();
+      const sentences = originalText.split(/(?<=[.!?])\s+/).filter(s => s && s.length > 10);
+
+      // Derive title & topic based on text content
+      let title = 'Texte de compréhension authentique';
+      let topic = 'Báo chí & Đời sống Pháp';
+
+      if (originalText.includes('écologique') || originalText.includes('transport') || originalText.includes('pollution') || originalText.includes('cyclable')) {
+        title = 'La transition écologique dans les transports';
+        topic = 'Môi trường & Đô thị';
+      } else if (originalText.includes('télétravail') || originalText.includes('travail') || originalText.includes('salariés') || originalText.includes('entreprise')) {
+        title = 'Le télétravail et l\'équilibre de vie';
+        topic = 'Công việc & Xã hội';
+      } else if (originalText.includes('étranger') || originalText.includes('voyage') || originalText.includes('expatriation') || originalText.includes('étudiants')) {
+        title = 'Partir vivre et étudier à l\'étranger';
+        topic = 'Du lịch & Định cư';
+      } else if (originalText.includes('Musique') || originalText.includes('fête') || originalText.includes('musiciens')) {
+        title = 'La Fête de la Musique en France';
+        topic = 'Văn hóa & Lễ hội';
+      } else {
+        const firstSentence = sentences[0] || originalText;
+        const firstWords = firstSentence.split(/\s+/).slice(0, 6).join(' ');
+        title = firstWords ? (firstWords + '...') : 'Article d\'actualité francophone';
+      }
+
+      const q1Sentence = sentences[0] || originalText;
+      const q2Sentence = sentences[Math.floor(sentences.length / 2)] || sentences[0] || originalText;
+      const q3Sentence = sentences[sentences.length - 1] || sentences[0] || originalText;
+
+      return JSON.stringify({
+        title,
+        topic,
+        passage: originalText,
+        questions: [
+          {
+            id: 1,
+            question: 'D\'après le début du document, quelle est l\'information essentielle ?',
+            options: [
+              q1Sentence.length > 80 ? q1Sentence.substring(0, 76) + '...' : q1Sentence,
+              'Ce phénomène ne concerne aucun citoyen ni aucune entreprise.',
+              'Il s\'agit d\'une réglementation temporaire valable uniquement pour une journée.',
+              'Toutes les personnes ont refusé de participer à ce projet.'
+            ],
+            correct_index: 0,
+            explanation: `Dẫn chứng trực tiếp từ bài viết: "${q1Sentence.length > 95 ? q1Sentence.substring(0, 90) + '...' : q1Sentence}".`
+          },
+          {
+            id: 2,
+            question: 'Concernant le déroulement et les faits mentionnés dans le texte :',
+            options: [
+              'Toutes les décisions ont été prises sans consultation préalable.',
+              q2Sentence.length > 80 ? q2Sentence.substring(0, 76) + '...' : q2Sentence,
+              'Le sujet a été complètement abandonné par les autorités.',
+              'Les participants n\'ont exprimé aucun avis sur la question.'
+            ],
+            correct_index: 1,
+            explanation: `Chi tiết được nêu rõ trong bài đọc: "${q2Sentence.length > 95 ? q2Sentence.substring(0, 90) + '...' : q2Sentence}".`
+          },
+          {
+            id: 3,
+            question: 'Que peut-on retenir en conclusion de ce document ?',
+            options: [
+              'Il n\'y a aucune perspective d\'avenir pour cette situation.',
+              'Les experts recommandent de cesser toute activité immédiatement.',
+              q3Sentence.length > 80 ? q3Sentence.substring(0, 76) + '...' : q3Sentence,
+              'La situation reste inchangée depuis plus de cinquante ans.'
+            ],
+            correct_index: 2,
+            explanation: `Phần kết luận bài báo nhấn mạnh: "${q3Sentence.length > 95 ? q3Sentence.substring(0, 90) + '...' : q3Sentence}".`
+          }
+        ]
+      });
+    }
+
+    // Default varied reading passages when no seed was selected
+    const fallbackPresets = [
+      {
+        title: 'La gastronomie française et les marchés locaux',
+        topic: 'Văn hóa & Đời sống ẩm thực',
+        passage: 'En France, faire le marché le dimanche matin est une véritable tradition pour de nombreuses familles. C\'est l\'occasion d\'acheter des produits frais et de saison, comme des fromages régionaux, des fruits et des légumes bio. Au-delà des courses, le marché est un lieu de rencontre convivial où les habitants discutent chaleureusement avec les producteurs locaux.',
+        questions: [
+          {
+            id: 1,
+            question: 'Quand beaucoup de familles françaises vont-elles au marché ?',
+            options: ['Le dimanche matin.', 'Le lundi soir.', 'Uniquement pendant les vacances d\'été.', 'À minuit.'],
+            correct_index: 0,
+            explanation: 'Đoạn đầu nêu rõ: "faire le marché le dimanche matin est une véritable tradition".'
+          },
+          {
+            id: 2,
+            question: 'Quels types de produits peut-on y trouver ?',
+            options: ['Uniquement des vêtements de luxe.', 'Des produits frais, de saison et des fromages régionaux.', 'Des appareils électroniques.', 'Des meubles de maison.'],
+            correct_index: 1,
+            explanation: 'Trong bài có: "acheter des produits frais et de saison, comme des fromages régionaux, des fruits et des légumes bio".'
+          },
+          {
+            id: 3,
+            question: 'Pourquoi le marché est-il plus qu\'un simple lieu de courses ?',
+            options: ['Parce que tout est gratuit.', 'Parce que c\'est un lieu de rencontre convivial avec les producteurs.', 'Parce qu\'il remplace les écoles.', 'Parce qu\'on y fait du sport.'],
+            correct_index: 1,
+            explanation: 'Tác giả viết: "le marché est un lieu de rencontre convivial où les habitants discutent avec les producteurs locaux".'
+          }
+        ]
+      },
+      {
+        title: 'Voyager en train en France : le réseau ferroviaire TGV',
+        topic: 'Giao thông & Du lịch bền vững',
+        passage: 'Le train reste l\'un des moyens de transport les plus populaires et écologiques en France. Grâce au réseau TGV, il est possible de relier Paris à Marseille ou Bordeaux en quelques heures seulement. De plus en plus de voyageurs choisissent le rail pour limiter leur empreinte carbone tout en profitant confortablement du paysage.',
+        questions: [
+          {
+            id: 1,
+            question: 'Quel est l\'un des principaux atouts du TGV ?',
+            options: ['Relier de grandes villes en seulement quelques heures.', 'Être gratuit pour tout le monde.', 'Ne circuler que la nuit.', 'Remplacer totalement les avions dans le monde entier.'],
+            correct_index: 0,
+            explanation: 'Bài viết chỉ ra: "relier Paris à Marseille ou Bordeaux en quelques heures seulement".'
+          },
+          {
+            id: 2,
+            question: 'Pourquoi les voyageurs privilégient-ils le train ?',
+            options: ['Parce que les routes sont interdites.', 'Pour limiter leur empreinte carbone et admirer le paysage.', 'Parce que les trains sont toujours vides.', 'Pour faire du shopping.'],
+            correct_index: 1,
+            explanation: 'Trong bài có: "pour limiter leur empreinte carbone tout en profitant du paysage".'
+          },
+          {
+            id: 3,
+            question: 'Comment le train est-il qualifié sur le plan environnemental ?',
+            options: ['Très polluant.', 'Écologique.', 'Dangereux.', 'Obsolète.'],
+            correct_index: 1,
+            explanation: 'Bài đọc nêu: "l\'un des moyens de transport les plus populaires et écologiques en France".'
+          }
+        ]
+      }
+    ];
+
+    return JSON.stringify(fallbackPresets[Math.floor(Math.random() * fallbackPresets.length)]);
+  },
+
+  _mockListeningExercise(systemPrompt) {
+    // 1. Check if seed text was provided inside systemPrompt
+    const seedMatch = systemPrompt.match(/"""\s*([\s\S]+?)\s*"""/);
+    if (seedMatch && seedMatch[1] && seedMatch[1].trim()) {
+      const originalText = seedMatch[1].trim();
+      const sentences = originalText.split(/(?<=[.!?])\s+/).filter(s => s && s.length > 10);
+
+      let title = 'Document audio et compréhension orale';
+      let topic = 'Bản tin / Phóng sự thực tế';
+
+      if (originalText.includes('écologique') || originalText.includes('transport') || originalText.includes('pollution')) {
+        title = 'RFI - La transition écologique dans les transports';
+        topic = 'Môi trường & Đô thị';
+      } else if (originalText.includes('télétravail') || originalText.includes('travail') || originalText.includes('salariés')) {
+        title = 'TV5MONDE - Le télétravail et l\'équilibre de vie';
+        topic = 'Công việc & Xã hội';
+      } else if (originalText.includes('étranger') || originalText.includes('voyage') || originalText.includes('expatriation')) {
+        title = 'France Éducation International - Partir vivre à l\'étranger';
+        topic = 'Du lịch & Định cư';
+      } else if (originalText.includes('Musique') || originalText.includes('culture') || originalText.includes('fête')) {
+        title = 'RFI - La Fête de la Musique en France';
+        topic = 'Văn hóa & Lễ hội';
+      } else {
+        const firstSentence = sentences[0] || originalText;
+        const firstWords = firstSentence.split(/\s+/).slice(0, 6).join(' ');
+        title = firstWords ? (firstWords + '...') : 'Chronique audio francophone';
+      }
+
+      const q1Sentence = sentences[0] || originalText;
+      const q2Sentence = sentences[Math.floor(sentences.length / 2)] || sentences[0] || originalText;
+      const q3Sentence = sentences[sentences.length - 1] || sentences[0] || originalText;
+
+      return JSON.stringify({
+        title,
+        topic,
+        passage: originalText,
+        questions: [
+          {
+            id: 1,
+            question: 'Quelle information principale est annoncée au début de l\'enregistrement ?',
+            options: [
+              q1Sentence.length > 80 ? q1Sentence.substring(0, 76) + '...' : q1Sentence,
+              'Une tempête de neige bloque tout le pays et les transports.',
+              'Un concert annulé pour des raisons de sécurité publique.',
+              'La fermeture complète et définitive des gares et aéroports.'
+            ],
+            correct_index: 0,
+            explanation: `Dẫn chứng từ câu mở đầu bản tin: "${q1Sentence.length > 95 ? q1Sentence.substring(0, 90) + '...' : q1Sentence}".`
+          },
+          {
+            id: 2,
+            question: 'Selon les propos entendus dans ce document audio :',
+            options: [
+              'Tous les intervenants ont refusé de s\'exprimer au micro.',
+              q2Sentence.length > 80 ? q2Sentence.substring(0, 76) + '...' : q2Sentence,
+              'Le projet ne commencera que dans cinquante ans.',
+              'Il n\'y a aucun impact perceptible sur la vie quotidienne.'
+            ],
+            correct_index: 1,
+            explanation: `Chi tiết trong đoạn phát thanh: "${q2Sentence.length > 95 ? q2Sentence.substring(0, 90) + '...' : q2Sentence}".`
+          },
+          {
+            id: 3,
+            question: 'Que retient-on pour conclure cette écoute ?',
+            options: [
+              'Le journaliste n\'a pas pu terminer son reportage sur le terrain.',
+              'L\'événement a été complètement oublié dès le lendemain.',
+              q3Sentence.length > 80 ? q3Sentence.substring(0, 76) + '...' : q3Sentence,
+              'Aucune solution nouvelle n\'est envisagée pour l\'avenir.'
+            ],
+            correct_index: 2,
+            explanation: `Phần kết luận của bài nghe: "${q3Sentence.length > 95 ? q3Sentence.substring(0, 90) + '...' : q3Sentence}".`
+          }
+        ]
+      });
+    }
+
+    // Default listening preset
+    return JSON.stringify({
+      title: 'Une invitation au restaurant entre collègues',
+      topic: 'Đời sống & Ẩm thực',
+      passage: 'Bonjour Sophie ! Ce soir, avec quelques collègues du bureau, nous allons dîner dans un nouveau restaurant italien près de la gare. Nous avons réservé une table pour vingt heures. Est-ce que tu es libre pour venir avec nous ? Fais-moi savoir avant seize heures pour que je confirme le nombre de personnes.',
+      questions: [
+        {
+          id: 1,
+          question: 'Où les collègues vont-ils dîner ce soir ?',
+          options: [
+            'Dans un restaurant français au centre-ville.',
+            'Dans un restaurant italien près de la gare.',
+            'Chez Sophie.',
+            'Au bureau.'
+          ],
+          correct_index: 1,
+          explanation: 'Người nói mời: "dans un nouveau restaurant italien près de la gare".'
+        },
+        {
+          id: 2,
+          question: 'À quelle heure est prévue la réservation ?',
+          options: ['18h00', '19h00', '20h00', '21h00'],
+          correct_index: 2,
+          explanation: 'Người nói thông báo: "Nous avons réservé une table pour vingt heures" (20h00).'
+        },
+        {
+          id: 3,
+          question: 'Avant quelle heure Sophie doit-elle confirmer sa présence ?',
+          options: ['12h00', '15h00', '16h00', '19h00'],
+          correct_index: 2,
+          explanation: 'Người nói dặn: "Fais-moi savoir avant seize heures" (trước 16h00).'
+        }
+      ]
+    });
   }
 };
 

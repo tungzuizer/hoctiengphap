@@ -205,6 +205,73 @@ const CONFIG = {
         { french: 'très grand', ipa: '/tʁɛ ɡʁɑ̃/', meaning: 'rất to lớn (s, d câm)', compareWith: 'Không đọc "tơ-rét gơ-răng-đờ"' }
       ]
     }
+  ],
+
+  // Dynamic Speaking Topic Starters & Conversation Starters
+  SPEAKING_TOPICS: [
+    {
+      id: 'food',
+      icon: 'coffee',
+      label: 'Ẩm thực & Bữa ăn',
+      badge: 'Nourriture',
+      prompt: 'Parlez-moi de vos plats français ou vietnamiens préférés et de vos habitudes culinaires.',
+      starterFr: 'Bonjour ! Aujourd\'hui, je voudrais vous parler de mes plats préférés et de mes repas.',
+      starterVi: 'Hôm nay tôi muốn nói về món ăn yêu thích và bữa ăn hàng ngày.'
+    },
+    {
+      id: 'travel',
+      icon: 'navigation',
+      label: 'Du lịch & Kỳ nghỉ',
+      badge: 'Voyages',
+      prompt: 'Racontez-moi un voyage mémorable que vous avez fait ou votre prochaine destination de vacances.',
+      starterFr: 'J\'adore voyager et j\'aimerais vous raconter mon dernier voyage mémorable.',
+      starterVi: 'Tôi rất thích du lịch và muốn kể về chuyến đi đáng nhớ vừa qua.'
+    },
+    {
+      id: 'work_study',
+      icon: 'briefcase',
+      label: 'Công việc & Học tập',
+      badge: 'Travail',
+      prompt: 'Présentez votre travail ou vos études : quelles sont vos responsabilités et vos projets ?',
+      starterFr: 'Actuellement, je travaille et je prépare aussi mon projet professionnel en français.',
+      starterVi: 'Hiện tại tôi đang làm việc và chuẩn bị kế hoạch nghề nghiệp.'
+    },
+    {
+      id: 'daily_life',
+      icon: 'home',
+      label: 'Thói quen & Cuộc sống',
+      badge: 'Quotidien',
+      prompt: 'Comment se passe une journée typique pour vous du matin au soir ?',
+      starterFr: 'Dans ma vie quotidienne, j\'ai l\'habitude de me lever tôt et d\'organiser ma journée.',
+      starterVi: 'Trong cuộc sống thường nhật, tôi có thói quen dậy sớm và sắp xếp một ngày.'
+    },
+    {
+      id: 'hobbies_arts',
+      icon: 'music',
+      label: 'Sở thích & Âm nhạc, Phim',
+      badge: 'Loisirs',
+      prompt: 'Quels sont vos loisirs favoris ? Aimez-vous le cinéma, la lecture ou la musique ?',
+      starterFr: 'Pendant mon temps libre, j\'aime écouter de la musique et regarder des films.',
+      starterVi: 'Vào thời gian rảnh, tôi thích nghe nhạc và xem phim.'
+    },
+    {
+      id: 'future_plans',
+      icon: 'target',
+      label: 'Dự định & Tương lai',
+      badge: 'Projets',
+      prompt: 'Quels sont vos projets pour les prochaines années (voyages, carrière, apprentissage) ?',
+      starterFr: 'Pour l\'avenir, j\'ai pour projet d\'obtenir le DELF B1 et de voyager à l\'étranger.',
+      starterVi: 'Về tương lai, tôi có dự định thi đạt DELF B1 và đi nước ngoài.'
+    },
+    {
+      id: 'delf_debate',
+      icon: 'messageSquare',
+      label: 'Bày tỏ quan điểm DELF B1',
+      badge: 'Débat B1',
+      prompt: 'Donnez votre avis sur un sujet d\'actualité : le télétravail, les transports écologiques ou la protection de l\'environnement.',
+      starterFr: 'À mon avis, le développement des transports écologiques est essentiel pour notre avenir.',
+      starterVi: 'Theo quan điểm của tôi, phát triển giao thông sinh thái là điều thiết yếu.'
+    }
   ]
 };
 

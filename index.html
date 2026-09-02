@@ -35,11 +35,6 @@
           <span class="profile-level-tag" id="header-profile-level">B1</span>
         </button>
 
-        <!-- API & Settings Gear -->
-        <button class="btn-icon" id="btn-open-settings" title="Cài đặt API OmniRoute & Thông tin">
-          <span id="settings-icon-slot"></span>
-        </button>
-
         <!-- Dark/Light Theme Toggle -->
         <button class="btn-icon" id="btn-theme-toggle" title="Đổi giao diện Sáng / Tối">
           <span id="theme-icon"></span>
@@ -140,6 +135,20 @@
             <button class="btn-primary" id="btn-send-text">
               <span id="send-icon-slot"></span> Gửi
             </button>
+          </div>
+        </div>
+
+        <!-- Gợi ý chủ đề trò chuyện theo ngữ cảnh (Thèmes de conversation) -->
+        <div class="speaking-topics-section">
+          <div class="speaking-topics-header">
+            <span class="topics-title-badge">
+              <span class="badge-sparkle-cute" data-icon="sparkles"></span>
+              <strong>Gợi ý chủ đề giao tiếp phong phú (Thèmes de conversation):</strong>
+            </span>
+            <span class="topics-subtitle">Nhấn chọn chủ đề để AI cùng bạn luyện phản xạ theo ngữ cảnh</span>
+          </div>
+          <div class="speaking-topics-grid" id="speaking-topics-container">
+            <!-- Dynamically populated by SpeakingModule.renderTopics -->
           </div>
         </div>
 
@@ -429,7 +438,7 @@
             <label class="form-label">Tên người học (ví dụ: Bạn của tôi):</label>
             <input type="text" class="form-input" id="new-profile-name" placeholder="Nhập tên..." required>
           </div>
-          <div style="margin-bottom: 0.75rem;">
+          <div style="margin-bottom: 1.25rem;">
             <label class="form-label">Mục tiêu trình độ:</label>
             <select class="form-input" id="new-profile-level">
               <option value="A1">A1 - Sơ cấp cơ bản</option>
@@ -437,90 +446,9 @@
               <option value="B1" selected>B1 - DELF B1 (Khuyên dùng)</option>
             </select>
           </div>
-          <div style="margin-bottom: 0.75rem;">
-            <label class="form-label">Cổng AI Gateway:</label>
-            <select class="form-input" id="new-profile-provider">
-              <option value="omniroute" selected>OmniRoute (Khuyên dùng)</option>
-              <option value="anthropic">Anthropic API Trực tiếp</option>
-              <option value="openai">OpenAI Trực tiếp</option>
-            </select>
-          </div>
-          <div style="margin-bottom: 1.25rem;">
-            <label class="form-label">API Key (tùy chọn, để trống sẽ dùng Demo Mock):</label>
-            <input type="password" class="form-input" id="new-profile-apikey" placeholder="sk-...">
-          </div>
           <button type="submit" class="btn-primary" style="width: 100%;">Tạo hồ sơ và Bắt đầu học</button>
         </form>
       </div>
-    </div>
-  </div>
-
-  <!-- ================= MODAL: CÀI ĐẶT API & OMNIROUTE ================= -->
-  <div class="modal-overlay hidden" id="modal-settings">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 style="display: flex; align-items: center; gap: 0.4rem;">
-          <span class="header-icon-slot" data-icon="settings"></span> Cấu Hình API & Hồ Sơ Hiện Tại
-        </h3>
-        <button class="btn-close-modal" id="btn-close-settings-modal">&times;</button>
-      </div>
-
-      <form id="form-profile-settings">
-        <div style="background: rgba(46, 213, 115, 0.12); border: 1px solid rgba(46, 213, 115, 0.35); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; margin-bottom: 0.9rem; font-size: 0.82rem; color: var(--text-color);">
-          <div style="font-weight: 700; display: flex; align-items: center; gap: 0.4rem; color: #2ed573;">
-            <span class="btn-icon-slot" data-icon="check"></span> 🔒 OmniRoute Backend Proxy Bảo Mật
-          </div>
-          <div style="margin-top: 0.25rem; font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
-            API Key được lưu an toàn trong file <code>.env</code> trên máy chủ và ẩn hoàn toàn khỏi Frontend.<br>
-            Cổng kết nối: <code>http://localhost:20128/v1</code> &bull; Model: <code>antigravity/gemini-3.7-flash-tiered</code>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 0.75rem;">
-          <label class="form-label">Tên hiển thị:</label>
-          <input type="text" class="form-input" id="settings-profile-name" required>
-        </div>
-
-        <div style="margin-bottom: 0.75rem;">
-          <label class="form-label">Trình độ đang học:</label>
-          <select class="form-input" id="settings-profile-level">
-            <option value="A1">A1</option>
-            <option value="A2">A2</option>
-            <option value="B1">B1 (DELF B1)</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 0.75rem;">
-          <label class="form-label">Nhà cung cấp AI:</label>
-          <select class="form-input" id="settings-provider">
-            <option value="omniroute" selected>OmniRoute Gateway (Cục bộ & Máy chủ)</option>
-            <option value="anthropic">Anthropic Messages API</option>
-            <option value="openai">OpenAI API</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 0.75rem;">
-          <label class="form-label">OmniRoute / Custom Base URL:</label>
-          <input type="text" class="form-input" id="settings-baseurl" placeholder="http://localhost:20128/v1">
-          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Mặc định: <code>http://localhost:20128/v1</code></small>
-        </div>
-
-        <div style="margin-bottom: 0.75rem;">
-          <label class="form-label">Model AI:</label>
-          <input type="text" class="form-input" id="settings-model" placeholder="antigravity/gemini-3.7-flash-tiered">
-          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Mặc định: <code>antigravity/gemini-3.7-flash-tiered</code> (hoặc <code>claude-3-7-sonnet</code>)</small>
-        </div>
-
-        <div style="margin-bottom: 1.25rem;">
-          <label class="form-label">API Key riêng (Tùy chọn ghi đè):</label>
-          <input type="password" class="form-input" id="settings-apikey" placeholder="Để trống để dùng Server Proxy .env">
-          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Để trống để tự động sử dụng API Key bảo mật từ Backend server.</small>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%;">
-          <span class="btn-icon-slot" data-icon="check"></span> Lưu Thay Đổi
-        </button>
-      </form>
     </div>
   </div>
 
