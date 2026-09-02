@@ -113,9 +113,8 @@ const ProgressModule = {
         this.chartInstance.destroy();
       }
 
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
-      const textColor = isDark ? '#98989d' : '#86868b';
+      const gridColor = 'rgba(168, 85, 247, 0.08)';
+      const textColor = '#64748B';
 
       const ctx = canvas.getContext('2d');
       this.chartInstance = new Chart(ctx, {
@@ -125,11 +124,11 @@ const ProgressModule = {
           datasets: [{
             label: 'Điểm Nói DELF (Thang /25)',
             data: dataPoints,
-            borderColor: '#0071e3',
+            borderColor: '#0071E3',
             backgroundColor: 'rgba(0, 113, 227, 0.12)',
             fill: true,
             tension: 0.35,
-            pointBackgroundColor: '#0071e3',
+            pointBackgroundColor: '#0071E3',
             pointBorderColor: '#ffffff',
             pointBorderWidth: 2,
             pointRadius: 6,

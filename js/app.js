@@ -15,24 +15,21 @@ const App = {
     if (window.StateManager) window.StateManager.init();
     if (window.SpeechService) window.SpeechService.init();
 
-    // 3. Initialize Theme
-    this.initTheme();
-
-    // 4. Bind Global Events & Touch Gestures
+    // 3. Bind Global Events & Touch Gestures
     this.bindEvents();
     this.initTouchGestures();
 
-    // 5. Update Profile Badge
+    // 4. Update Profile Badge
     this.refreshCurrentProfileUI();
 
-    // 6. Initialize Sub-modules
+    // 5. Initialize Sub-modules
     if (window.SpeakingModule) window.SpeakingModule.init();
     if (window.ReadingModule) window.ReadingModule.init();
     if (window.ListeningModule) window.ListeningModule.init();
     if (window.SeedBankModule) window.SeedBankModule.init();
     if (window.ProgressModule) window.ProgressModule.init();
 
-    // 7. Check if initial user needs to configure API Key
+    // 6. Check if initial user needs to configure API Key
     this.checkInitialConfig();
   },
 
@@ -121,12 +118,6 @@ const App = {
         if (targetTab) this.switchTab(targetTab);
       });
     });
-
-    // Theme toggle
-    const themeBtn = document.getElementById('btn-theme-toggle');
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => this.toggleTheme());
-    }
 
     // Profile Switcher button
     const profileBtn = document.getElementById('btn-profile-badge');
@@ -272,27 +263,6 @@ const App = {
       window.ProgressModule.render();
     } else if (tabId === 'seedbank' && window.SeedBankModule) {
       window.SeedBankModule.render();
-    }
-  },
-
-  initTheme() {
-    const savedTheme = localStorage.getItem('delf_app_theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    this.updateThemeButtonIcon(savedTheme);
-  },
-
-  toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme') || 'light';
-    const next = current === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('delf_app_theme', next);
-    this.updateThemeButtonIcon(next);
-  },
-
-  updateThemeButtonIcon(theme) {
-    const iconEl = document.getElementById('theme-icon');
-    if (iconEl && window.Icons) {
-      iconEl.innerHTML = theme === 'dark' ? window.Icons.get('sun', '', 18) : window.Icons.get('moon', '', 18);
     }
   },
 
