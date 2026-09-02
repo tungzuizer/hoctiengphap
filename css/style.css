@@ -306,6 +306,120 @@ body {
   transform: scale(0.95);
 }
 
+/* ================= Cute Personalized Welcome Banner (Trang Edition) ================= */
+.welcome-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  background: var(--card-bg);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.15rem 1.6rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.welcome-left {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.welcome-avatar-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF7597, #8B5CF6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(255, 117, 151, 0.35);
+  flex-shrink: 0;
+  position: relative;
+  transition: transform var(--transition-normal);
+}
+
+.welcome-avatar-wrap:hover {
+  transform: scale(1.06) rotate(6deg);
+}
+
+.welcome-avatar-status {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #34C759;
+  border: 2.5px solid var(--card-solid);
+}
+
+.welcome-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.welcome-title strong {
+  color: var(--primary);
+}
+
+.welcome-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  font-weight: 500;
+}
+
+.welcome-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.welcome-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.welcome-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.welcome-chip.chip-level {
+  background: var(--accent-rose-light);
+  color: #E11D48;
+  border-color: rgba(225, 29, 72, 0.2);
+}
+
+.welcome-chip.chip-streak {
+  background: var(--accent-amber-light);
+  color: #D97706;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
 /* ================= iOS Segmented Control Tabs ================= */
 .nav-tabs-wrapper {
   margin: 1.25rem 0 1.75rem;

@@ -17,7 +17,7 @@ const StateManager = {
     if (!profiles || profiles.length === 0) {
       const defaultProfile = {
         id: 'prof_' + Date.now(),
-        name: 'Học viên 1',
+        name: 'Trang',
         level: 'B1',
         createdAt: new Date().toISOString(),
         lastActive: new Date().toISOString()
@@ -33,6 +33,13 @@ const StateManager = {
         apiKey: '',
         model: window.CONFIG ? window.CONFIG.DEFAULT_MODEL : 'claude-3-7-sonnet'
       });
+    } else {
+      // If user profile is generic "Học viên 1", personalize to "Trang"
+      const defaultProf = profiles.find(p => p.name === 'Học viên 1' || p.name === 'Tôi');
+      if (defaultProf) {
+        defaultProf.name = 'Trang';
+        this.saveProfiles(profiles);
+      }
     }
 
     // Ensure active profile is valid

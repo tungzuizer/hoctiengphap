@@ -90,6 +90,20 @@ const App = {
       if (iconName) el.innerHTML = window.Icons.get(iconName, '', 18);
     });
 
+    // Welcome Banner Icons
+    const welcomeAvatar = document.getElementById('welcome-avatar-icon');
+    if (welcomeAvatar) welcomeAvatar.innerHTML = window.Icons.get('heart', '', 24);
+
+    document.querySelectorAll('.welcome-sparkle-slot').forEach(el => {
+      const iconName = el.dataset.icon || 'sparkles';
+      el.innerHTML = window.Icons.get(iconName, '', 18);
+    });
+
+    document.querySelectorAll('.chip-icon-slot').forEach(el => {
+      const iconName = el.dataset.icon;
+      if (iconName) el.innerHTML = window.Icons.get(iconName, '', 14);
+    });
+
     // Button icon slots
     document.querySelectorAll('.btn-icon-slot').forEach(el => {
       const iconName = el.dataset.icon;
@@ -210,9 +224,19 @@ const App = {
 
     const nameEl = document.getElementById('header-profile-name');
     const levelEl = document.getElementById('header-profile-level');
+    const welcomeNameEl = document.getElementById('welcome-profile-name');
+    const welcomeLevelBadgeEl = document.getElementById('welcome-profile-level-badge');
+    const welcomeSessionCountEl = document.getElementById('welcome-session-count');
 
     if (nameEl) nameEl.textContent = profile.name;
     if (levelEl) levelEl.textContent = profile.level;
+    if (welcomeNameEl) welcomeNameEl.textContent = profile.name;
+    if (welcomeLevelBadgeEl) welcomeLevelBadgeEl.textContent = `Objectif DELF ${profile.level}`;
+
+    if (welcomeSessionCountEl && window.StateManager.getProgress) {
+      const count = window.StateManager.getProgress(profile.id).length;
+      welcomeSessionCountEl.textContent = `${count} buổi học`;
+    }
   },
 
   checkInitialConfig() {

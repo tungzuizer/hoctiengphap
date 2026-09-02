@@ -36,7 +36,7 @@ async function runTests() {
   StateManager.init();
   const defaultProf = StateManager.getActiveProfile();
   assert.ok(defaultProf, 'Có hồ sơ mặc định khi khởi tạo');
-  assert.strictEqual(defaultProf.name, 'Học viên 1');
+  assert.strictEqual(defaultProf.name, 'Trang', 'Hồ sơ mặc định được cá nhân hoá cho Trang');
 
   // Create Profile 2 for a friend
   const friendProf = StateManager.createProfile('Bạn của tôi', 'A2', {
