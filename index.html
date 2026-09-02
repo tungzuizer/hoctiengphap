@@ -82,33 +82,28 @@
       </div>
     </div>
 
-    <!-- Navigation Tabs (iOS Segmented Control on Desktop / Fixed Tab Bar on Mobile) -->
+    <!-- Navigation Tabs (iOS 18 Segmented Control on Desktop / Clean Fixed Tab Bar on Mobile) -->
     <div class="nav-tabs-wrapper" id="nav-tabs-wrapper">
       <nav class="nav-tabs" role="tablist" id="main-nav-tabs">
         <button class="nav-tab active" data-tab="speaking">
           <span class="tab-icon-slot" data-icon="mic"></span>
-          <span class="tab-label">Luyện Nói</span>
-          <span class="tab-sublabel">Expression Orale</span>
+          <span class="tab-label">Nói</span>
         </button>
         <button class="nav-tab" data-tab="reading">
           <span class="tab-icon-slot" data-icon="bookOpen"></span>
-          <span class="tab-label">Luyện Đọc</span>
-          <span class="tab-sublabel">Compréhension Écrite</span>
+          <span class="tab-label">Đọc</span>
         </button>
         <button class="nav-tab" data-tab="listening">
           <span class="tab-icon-slot" data-icon="headphones"></span>
-          <span class="tab-label">Luyện Nghe</span>
-          <span class="tab-sublabel">Compréhension Orale</span>
+          <span class="tab-label">Nghe</span>
         </button>
         <button class="nav-tab" data-tab="seedbank">
           <span class="tab-icon-slot" data-icon="database"></span>
-          <span class="tab-label">Kho Đề Thật</span>
-          <span class="tab-sublabel">RFI & TV5</span>
+          <span class="tab-label">Kho đề</span>
         </button>
         <button class="nav-tab" data-tab="progress">
           <span class="tab-icon-slot" data-icon="chart"></span>
-          <span class="tab-label">Tiến Độ</span>
-          <span class="tab-sublabel">DELF /25</span>
+          <span class="tab-label">Tiến độ</span>
         </button>
       </nav>
     </div>
@@ -152,9 +147,8 @@
           <div class="speaking-topics-header">
             <span class="topics-title-badge">
               <span class="badge-sparkle-cute" data-icon="sparkles"></span>
-              <strong>Gợi ý chủ đề giao tiếp phong phú (Thèmes de conversation):</strong>
+              <strong>Chủ đề hội thoại:</strong>
             </span>
-            <span class="topics-subtitle">Nhấn chọn chủ đề để AI cùng bạn luyện phản xạ theo ngữ cảnh</span>
           </div>
           <div class="speaking-topics-grid" id="speaking-topics-container">
             <!-- Dynamically populated by SpeakingModule.renderTopics -->
@@ -167,12 +161,12 @@
             <div class="atelier-toggle-info">
               <span class="badge-sparkle-cute" data-icon="sparkles"></span>
               <div>
-                <strong style="font-size: 0.98rem; color: var(--text-main); display: block;">Atelier Phonétique (Xưởng Luyện Phát Âm Chuyên Sâu)</strong>
-                <span style="font-size: 0.82rem; color: var(--text-muted);">Mẹo khẩu hình chuẩn IPA, cặp âm [y]/[u], 4 âm mũi, âm R họng & nối âm bắt buộc</span>
+                <strong style="font-size: 0.95rem; color: var(--text-main); display: block;">Xưởng Ngữ Âm IPA</strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Khẩu hình miệng & mẹo phát âm chuẩn</span>
               </div>
             </div>
             <button class="btn-outline btn-sm" id="btn-toggle-atelier-phonetique">
-              <span class="btn-icon-slot" data-icon="sparkles"></span> Mở Xưởng Ngữ Âm
+              <span class="btn-icon-slot" data-icon="sparkles"></span> Mở Xưởng
             </button>
           </div>
 
@@ -186,13 +180,13 @@
         <!-- Conversation Stream Section (iMessage Aesthetic) -->
         <div class="conversation-section">
           <div class="conversation-header">
-            <h3><span class="header-icon-slot" data-icon="messageSquare"></span> Đoạn hội thoại buổi luyện</h3>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <h3><span class="header-icon-slot" data-icon="messageSquare"></span> Hội thoại</h3>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
               <button class="btn-primary btn-sm" id="btn-evaluate-speaking">
-                <span class="btn-icon-slot" data-icon="award"></span> Chấm điểm buổi luyện (Grille DELF)
+                <span class="btn-icon-slot" data-icon="award"></span> Chấm điểm DELF (/25)
               </button>
               <button class="btn-outline btn-sm" id="btn-clear-conversation">
-                <span class="btn-icon-slot" data-icon="trash"></span> Xóa hội thoại
+                <span class="btn-icon-slot" data-icon="trash"></span> Xóa
               </button>
             </div>
           </div>
@@ -214,14 +208,14 @@
     <!-- ================= TAB 2: LUYỆN ĐỌC ================= -->
     <section class="tab-panel" id="tab-reading">
       <div class="filter-bar">
-        <div style="flex: 1; min-width: 260px;">
-          <label class="form-label">Chọn nguồn tài liệu hoặc văn bản mẫu:</label>
+        <div style="flex: 1; min-width: 220px;">
+          <label class="form-label">Tài liệu luyện đọc:</label>
           <select class="select-input" id="reading-seed-select" style="width: 100%;">
             <!-- Dynamically populated with seed bank options -->
           </select>
         </div>
         <button class="btn-primary" id="btn-generate-reading">
-          <span class="btn-icon-slot" data-icon="sparkles"></span> Sinh bài đọc mới
+          <span class="btn-icon-slot" data-icon="sparkles"></span> Tạo bài đọc
         </button>
       </div>
 
@@ -229,12 +223,12 @@
       <div id="reading-content-area">
         <div class="empty-state">
           <div class="empty-icon-wrap" id="reading-empty-icon"></div>
-          <h3>Sẵn sàng luyện Đọc hiểu tiếng Pháp</h3>
-          <p>Nhấn nút <strong>"Sinh bài đọc mới"</strong> để AI tạo một văn bản tiếng Pháp kèm 3 câu hỏi trắc nghiệm theo chuẩn CEFR/DELF.</p>
+          <h3>Luyện Đọc hiểu B1</h3>
+          <p>Nhấn <strong>"Tạo bài đọc"</strong> để bắt đầu bài đọc hiểu và trắc nghiệm chuẩn DELF.</p>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 1.5rem;">
+      <div style="text-align: center; margin-top: 1.25rem;">
         <button class="btn-primary btn-lg hidden" id="btn-submit-reading">
           <span class="btn-icon-slot" data-icon="checkCircle"></span> Nộp bài & Chấm điểm
         </button>
@@ -244,14 +238,14 @@
     <!-- ================= TAB 3: LUYỆN NGHE ================= -->
     <section class="tab-panel" id="tab-listening">
       <div class="filter-bar">
-        <div style="flex: 1; min-width: 260px;">
-          <label class="form-label">Chọn nguồn tài liệu nghe hoặc transcript mẫu:</label>
+        <div style="flex: 1; min-width: 220px;">
+          <label class="form-label">Tài liệu luyện nghe:</label>
           <select class="select-input" id="listening-seed-select" style="width: 100%;">
             <!-- Dynamically populated with seed bank options -->
           </select>
         </div>
         <button class="btn-primary" id="btn-generate-listening">
-          <span class="btn-icon-slot" data-icon="sparkles"></span> Sinh bài nghe mới
+          <span class="btn-icon-slot" data-icon="sparkles"></span> Tạo bài nghe
         </button>
       </div>
 
@@ -259,12 +253,12 @@
       <div id="listening-content-area">
         <div class="empty-state">
           <div class="empty-icon-wrap" id="listening-empty-icon"></div>
-          <h3>Luyện Nghe chuẩn âm điệu Pháp (Audio-First)</h3>
-          <p>Nhấn nút <strong>"Sinh bài nghe mới"</strong>. Văn bản ban đầu sẽ được ẩn để bạn tập trung luyện tai nghe trước khi xem câu hỏi và lời thoại.</p>
+          <h3>Luyện Nghe chuẩn Pháp</h3>
+          <p>Nhấn <strong>"Tạo bài nghe"</strong> để luyện nghe âm điệu tự nhiên trước khi trả lời câu hỏi.</p>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 1.5rem;">
+      <div style="text-align: center; margin-top: 1.25rem;">
         <button class="btn-primary btn-lg hidden" id="btn-submit-listening">
           <span class="btn-icon-slot" data-icon="checkCircle"></span> Nộp bài & Chấm điểm
         </button>
@@ -276,56 +270,56 @@
 
       <!-- Add New Custom Seed Form Card -->
       <div class="add-seed-card">
-        <h3 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-          <span class="header-icon-slot" data-icon="plus"></span> Thêm đề thi / Transcript tiếng Pháp thật
+        <h3 style="margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span class="header-icon-slot" data-icon="plus"></span> Thêm bài báo / Đề thi
         </h3>
-        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-          Dán transcript trích xuất từ <strong>RFI (Journal en français facile)</strong>, <strong>TV5MONDE</strong>, hoặc <strong>Đề thi DELF mẫu</strong> để AI sinh bài đọc/nghe bám sát thực tế nhất.
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Dán bản tin từ <strong>RFI</strong>, <strong>TV5MONDE</strong> hoặc <strong>đề thi DELF</strong> để tạo bài luyện tập.
         </p>
 
         <form id="form-add-seed">
           <div class="form-grid">
             <div>
-              <label class="form-label">Tiêu đề bài viết / bản tin:</label>
-              <input type="text" class="form-input" id="seed-input-title" placeholder="VD: RFI - L'énergie solaire en France" required>
+              <label class="form-label">Tiêu đề bài:</label>
+              <input type="text" class="form-input" id="seed-input-title" placeholder="VD: RFI - L'énergie solaire" required>
             </div>
             <div>
-              <label class="form-label">Nguồn tài liệu:</label>
-              <input type="text" class="form-input" id="seed-input-source" placeholder="VD: RFI, TV5MONDE, France Éducation..." required>
+              <label class="form-label">Nguồn:</label>
+              <input type="text" class="form-input" id="seed-input-source" placeholder="VD: RFI, TV5MONDE..." required>
             </div>
             <div>
-              <label class="form-label">Trình độ CEFR:</label>
+              <label class="form-label">Trình độ:</label>
               <select class="form-input" id="seed-input-level">
                 <option value="A1">A1 (Cơ bản)</option>
                 <option value="A2">A2 (Sơ cấp)</option>
-                <option value="B1" selected>B1 (Trung cấp / Độc lập)</option>
+                <option value="B1" selected>B1 (Trung cấp)</option>
               </select>
             </div>
             <div>
-              <label class="form-label">Chủ đề (Topic):</label>
-              <input type="text" class="form-input" id="seed-input-topic" placeholder="VD: Môi trường, Du lịch, Công nghệ...">
+              <label class="form-label">Chủ đề:</label>
+              <input type="text" class="form-input" id="seed-input-topic" placeholder="VD: Môi trường, Du lịch...">
             </div>
             <div class="form-group-full">
-              <label class="form-label">Link nguồn trực tuyến (tùy chọn):</label>
+              <label class="form-label">Link nguồn (tùy chọn):</label>
               <input type="url" class="form-input" id="seed-input-url" placeholder="https://francaisfacile.rfi.fr/...">
             </div>
             <div class="form-group-full">
-              <label class="form-label">Nội dung Transcript tiếng Pháp chuẩn:</label>
-              <textarea class="form-textarea" id="seed-input-transcript" rows="5" placeholder="Dán đoạn văn tiếng Pháp gốc vào đây..." required></textarea>
+              <label class="form-label">Nội dung tiếng Pháp:</label>
+              <textarea class="form-textarea" id="seed-input-transcript" rows="4" placeholder="Dán văn bản tiếng Pháp vào đây..." required></textarea>
             </div>
           </div>
           <button type="submit" class="btn-primary">
-            <span class="btn-icon-slot" data-icon="plus"></span> Lưu vào Ngân Hàng Đề
+            <span class="btn-icon-slot" data-icon="plus"></span> Lưu vào kho đề
           </button>
         </form>
       </div>
 
       <!-- Filter Controls -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
-        <h3 style="font-size: 1.2rem; display: flex; align-items: center; gap: 0.4rem;">
-          <span class="header-icon-slot" data-icon="folder"></span> Danh sách đề trong kho:
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.4rem;">
+        <h3 style="font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem;">
+          <span class="header-icon-slot" data-icon="folder"></span> Danh sách đề thi:
         </h3>
-        <div style="display: flex; gap: 0.35rem;">
+        <div style="display: flex; gap: 0.3rem;">
           <button class="btn-outline btn-sm btn-seed-filter active" data-level="ALL">Tất cả</button>
           <button class="btn-outline btn-sm btn-seed-filter" data-level="A1">A1</button>
           <button class="btn-outline btn-sm btn-seed-filter" data-level="A2">A2</button>
