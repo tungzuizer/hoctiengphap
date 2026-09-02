@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Français DELF Studio — Luyện Tiếng Pháp A1 → DELF B1</title>
+  <meta name="description" content="Ứng dụng luyện thi tiếng Pháp A1 - DELF B1 với AI theo chuẩn iOS HIG, hỗ trợ đa người dùng, chấm điểm theo Grille DELF B1 chính thức và kho đề chuẩn RFI/TV5MONDE.">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Chart.js for Progression Tracking -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-area">
+        <div class="brand-logo-badge" id="brand-logo-slot">
+          <!-- Populated with French Cockade SVG -->
+        </div>
+        <div>
+          <h1 class="brand-title">Français <span class="brand-accent">DELF Studio</span></h1>
+          <span class="brand-subtitle">Luyện thi tiếng Pháp A1 → DELF B1 cùng AI bản ngữ</span>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <!-- Profile Switcher Badge Button -->
+        <button class="profile-badge-btn" id="btn-profile-badge" title="Chuyển đổi hoặc tạo hồ sơ học viên mới">
+          <span class="profile-avatar-circle" id="header-avatar-slot"></span>
+          <span id="header-profile-name">Học viên</span>
+          <span class="profile-level-tag" id="header-profile-level">B1</span>
+        </button>
+
+        <!-- API & Settings Gear -->
+        <button class="btn-icon" id="btn-open-settings" title="Cài đặt API OmniRoute & Thông tin">
+          <span id="settings-icon-slot"></span>
+        </button>
+
+        <!-- Dark/Light Theme Toggle -->
+        <button class="btn-icon" id="btn-theme-toggle" title="Đổi giao diện Sáng / Tối">
+          <span id="theme-icon"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-container">
+
+    <!-- Navigation Tabs (iOS Segmented Control) -->
+    <div class="nav-tabs-wrapper">
+      <nav class="nav-tabs" role="tablist" id="main-nav-tabs">
+        <button class="nav-tab active" data-tab="speaking">
+          <span class="tab-icon-slot" data-icon="mic"></span> Luyện Nói (Expression Orale)
+        </button>
+        <button class="nav-tab" data-tab="reading">
+          <span class="tab-icon-slot" data-icon="bookOpen"></span> Luyện Đọc (Compréhension Écrite)
+        </button>
+        <button class="nav-tab" data-tab="listening">
+          <span class="tab-icon-slot" data-icon="headphones"></span> Luyện Nghe (Compréhension Orale)
+        </button>
+        <button class="nav-tab" data-tab="seedbank">
+          <span class="tab-icon-slot" data-icon="database"></span> Ngân Hàng Đề Thật
+        </button>
+        <button class="nav-tab" data-tab="progress">
+          <span class="tab-icon-slot" data-icon="chart"></span> Tiến Độ & Báo Cáo
+        </button>
+      </nav>
+    </div>
+
+    <!-- ================= TAB 1: LUYỆN NÓI ================= -->
+    <section class="tab-panel active" id="tab-speaking">
+      <div class="speaking-layout">
+
+        <!-- Microphone Hero Card (Apple Siri Aesthetic) -->
+        <div class="mic-hero-card">
+          <div class="mic-button-wrapper">
+            <button class="btn-mic" id="btn-mic-toggle" title="Nhấn để bật micro và nói tiếng Pháp">
+              <span id="mic-icon-slot"></span>
+            </button>
+          </div>
+
+          <!-- Animated Sound Wave Visualizer (when recording) -->
+          <div class="sound-wave-bars hidden" id="sound-wave-bars">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+
+          <div class="mic-status" id="mic-status-text">
+            Nhấn nút Micro để nói tiếng Pháp (hoặc gõ câu bên dưới)
+          </div>
+
+          <div class="live-transcript-box hidden" id="live-transcript">
+            ...
+          </div>
+
+          <!-- Fallback text input -->
+          <div class="text-fallback-input">
+            <input type="text" class="text-input" id="speaking-text-input" placeholder="Hoặc gõ câu tiếng Pháp ở đây rồi nhấn Enter / Gửi...">
+            <button class="btn-primary" id="btn-send-text">
+              <span id="send-icon-slot"></span> Gửi
+            </button>
+          </div>
+        </div>
+
+        <!-- Conversation Stream Section (iMessage Aesthetic) -->
+        <div class="conversation-section">
+          <div class="conversation-header">
+            <h3><span class="header-icon-slot" data-icon="messageSquare"></span> Đoạn hội thoại buổi luyện</h3>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn-primary btn-sm" id="btn-evaluate-speaking">
+                <span class="btn-icon-slot" data-icon="award"></span> Chấm điểm buổi luyện (Grille DELF)
+              </button>
+              <button class="btn-outline btn-sm" id="btn-clear-conversation">
+                <span class="btn-icon-slot" data-icon="trash"></span> Xóa hội thoại
+              </button>
+            </div>
+          </div>
+
+          <!-- Message bubbles container -->
+          <div class="conversation-container" id="conversation-container">
+            <!-- Dynamically populated by SpeakingModule -->
+          </div>
+        </div>
+
+        <!-- Official DELF Evaluation Result Section -->
+        <div id="speaking-eval-result" class="hidden">
+          <!-- Dynamically populated by SpeakingModule.renderEvaluationResult -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: LUYỆN ĐỌC ================= -->
+    <section class="tab-panel" id="tab-reading">
+      <div class="filter-bar">
+        <div style="flex: 1; min-width: 260px;">
+          <label class="form-label">Chọn nguồn tài liệu hoặc văn bản mẫu:</label>
+          <select class="select-input" id="reading-seed-select" style="width: 100%;">
+            <!-- Dynamically populated with seed bank options -->
+          </select>
+        </div>
+        <button class="btn-primary" id="btn-generate-reading">
+          <span class="btn-icon-slot" data-icon="sparkles"></span> Sinh bài đọc mới
+        </button>
+      </div>
+
+      <!-- Reading Article & Questions Content Area -->
+      <div id="reading-content-area">
+        <div class="empty-state">
+          <div class="empty-icon-wrap" id="reading-empty-icon"></div>
+          <h3>Sẵn sàng luyện Đọc hiểu tiếng Pháp</h3>
+          <p>Nhấn nút <strong>"Sinh bài đọc mới"</strong> để AI tạo một văn bản tiếng Pháp kèm 3 câu hỏi trắc nghiệm theo chuẩn CEFR/DELF.</p>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <button class="btn-primary btn-lg hidden" id="btn-submit-reading">
+          <span class="btn-icon-slot" data-icon="checkCircle"></span> Nộp bài & Chấm điểm
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: LUYỆN NGHE ================= -->
+    <section class="tab-panel" id="tab-listening">
+      <div class="filter-bar">
+        <div style="flex: 1; min-width: 260px;">
+          <label class="form-label">Chọn nguồn tài liệu nghe hoặc transcript mẫu:</label>
+          <select class="select-input" id="listening-seed-select" style="width: 100%;">
+            <!-- Dynamically populated with seed bank options -->
+          </select>
+        </div>
+        <button class="btn-primary" id="btn-generate-listening">
+          <span class="btn-icon-slot" data-icon="sparkles"></span> Sinh bài nghe mới
+        </button>
+      </div>
+
+      <!-- Audio Player & Listening Questions Content Area -->
+      <div id="listening-content-area">
+        <div class="empty-state">
+          <div class="empty-icon-wrap" id="listening-empty-icon"></div>
+          <h3>Luyện Nghe chuẩn âm điệu Pháp (Audio-First)</h3>
+          <p>Nhấn nút <strong>"Sinh bài nghe mới"</strong>. Văn bản ban đầu sẽ được ẩn để bạn tập trung luyện tai nghe trước khi xem câu hỏi và lời thoại.</p>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <button class="btn-primary btn-lg hidden" id="btn-submit-listening">
+          <span class="btn-icon-slot" data-icon="checkCircle"></span> Nộp bài & Chấm điểm
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: NGÂN HÀNG ĐỀ THẬT ================= -->
+    <section class="tab-panel" id="tab-seedbank">
+
+      <!-- Add New Custom Seed Form Card -->
+      <div class="add-seed-card">
+        <h3 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span class="header-icon-slot" data-icon="plus"></span> Thêm đề thi / Transcript tiếng Pháp thật
+        </h3>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Dán transcript trích xuất từ <strong>RFI (Journal en français facile)</strong>, <strong>TV5MONDE</strong>, hoặc <strong>Đề thi DELF mẫu</strong> để AI sinh bài đọc/nghe bám sát thực tế nhất.
+        </p>
+
+        <form id="form-add-seed">
+          <div class="form-grid">
+            <div>
+              <label class="form-label">Tiêu đề bài viết / bản tin:</label>
+              <input type="text" class="form-input" id="seed-input-title" placeholder="VD: RFI - L'énergie solaire en France" required>
+            </div>
+            <div>
+              <label class="form-label">Nguồn tài liệu:</label>
+              <input type="text" class="form-input" id="seed-input-source" placeholder="VD: RFI, TV5MONDE, France Éducation..." required>
+            </div>
+            <div>
+              <label class="form-label">Trình độ CEFR:</label>
+              <select class="form-input" id="seed-input-level">
+                <option value="A1">A1 (Cơ bản)</option>
+                <option value="A2">A2 (Sơ cấp)</option>
+                <option value="B1" selected>B1 (Trung cấp / Độc lập)</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Chủ đề (Topic):</label>
+              <input type="text" class="form-input" id="seed-input-topic" placeholder="VD: Môi trường, Du lịch, Công nghệ...">
+            </div>
+            <div class="form-group-full">
+              <label class="form-label">Link nguồn trực tuyến (tùy chọn):</label>
+              <input type="url" class="form-input" id="seed-input-url" placeholder="https://francaisfacile.rfi.fr/...">
+            </div>
+            <div class="form-group-full">
+              <label class="form-label">Nội dung Transcript tiếng Pháp chuẩn:</label>
+              <textarea class="form-textarea" id="seed-input-transcript" rows="5" placeholder="Dán đoạn văn tiếng Pháp gốc vào đây..." required></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">
+            <span class="btn-icon-slot" data-icon="plus"></span> Lưu vào Ngân Hàng Đề
+          </button>
+        </form>
+      </div>
+
+      <!-- Filter Controls -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+        <h3 style="font-size: 1.2rem; display: flex; align-items: center; gap: 0.4rem;">
+          <span class="header-icon-slot" data-icon="folder"></span> Danh sách đề trong kho:
+        </h3>
+        <div style="display: flex; gap: 0.35rem;">
+          <button class="btn-outline btn-sm btn-seed-filter active" data-level="ALL">Tất cả</button>
+          <button class="btn-outline btn-sm btn-seed-filter" data-level="A1">A1</button>
+          <button class="btn-outline btn-sm btn-seed-filter" data-level="A2">A2</button>
+          <button class="btn-outline btn-sm btn-seed-filter" data-level="B1">B1</button>
+        </div>
+      </div>
+
+      <!-- Seed List Grid -->
+      <div class="seed-grid" id="seed-list-container">
+        <!-- Dynamically populated by SeedBankModule -->
+      </div>
+    </section>
+
+    <!-- ================= TAB 5: TIẾN ĐỘ & BÁO CÁO ================= -->
+    <section class="tab-panel" id="tab-progress">
+
+      <!-- Key Statistics Overview (Apple Fitness Aesthetic) -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrap" style="background: var(--accent-lavender-light); color: var(--accent-lavender);" id="stat-icon-total"></div>
+          <div class="stat-value" id="stat-total-sessions">0</div>
+          <div class="stat-label">Tổng số buổi luyện tập</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrap" style="background: var(--primary-light); color: var(--primary);" id="stat-icon-speaking"></div>
+          <div class="stat-value" id="stat-latest-speaking">-</div>
+          <div class="stat-label">Điểm Nói DELF gần nhất</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrap" style="background: var(--accent-rose-light); color: var(--accent-rose);" id="stat-icon-reading"></div>
+          <div class="stat-value" id="stat-avg-reading">-</div>
+          <div class="stat-label">Tỷ lệ đúng Luyện Đọc</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrap" style="background: var(--accent-mint-light); color: var(--accent-mint);" id="stat-icon-listening"></div>
+          <div class="stat-value" id="stat-avg-listening">-</div>
+          <div class="stat-label">Tỷ lệ đúng Luyện Nghe</div>
+        </div>
+      </div>
+
+      <!-- Chart.js Score Visualization Card -->
+      <div class="chart-card">
+        <h4 style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+          <span class="header-icon-slot" data-icon="chart"></span> Biểu đồ điểm thi Nói DELF theo thời gian
+        </h4>
+        <div style="position: relative; height: 260px; width: 100%;">
+          <canvas id="progress-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Frequent Errors Section -->
+      <div class="delf-grid-card" style="margin-bottom: 1.5rem;">
+        <h4 style="display: flex; align-items: center; gap: 0.4rem;">
+          <span class="header-icon-slot" data-icon="alertCircle"></span> Các lỗi ngữ pháp & từ vựng thường gặp nhất của bạn:
+        </h4>
+        <div id="frequent-errors-container">
+          <!-- Dynamically populated by ProgressModule -->
+        </div>
+      </div>
+
+      <!-- History Data Table -->
+      <div class="history-table-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+          <h4 style="display: flex; align-items: center; gap: 0.4rem;">
+            <span class="header-icon-slot" data-icon="book"></span> Lịch sử chi tiết các bài làm
+          </h4>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-primary btn-sm" id="btn-export-progress">
+              <span class="btn-icon-slot" data-icon="export"></span> Xuất file sao lưu (JSON)
+            </button>
+            <button class="btn-outline btn-sm" id="btn-import-progress">
+              <span class="btn-icon-slot" data-icon="import"></span> Nhập file sao lưu
+            </button>
+            <input type="file" id="file-import-progress" accept=".json" style="display: none;">
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Kỹ năng</th>
+              <th>Trình độ</th>
+              <th>Điểm số</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="progress-history-tbody">
+            <!-- Dynamically populated by ProgressModule -->
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL: CHUYỂN ĐỔI / TẠO HỒ SƠ ================= -->
+  <div class="modal-overlay hidden" id="modal-profile-switcher">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 0.4rem;">
+          <span class="header-icon-slot" data-icon="users"></span> Quản Lý Hồ Sơ Người Học
+        </h3>
+        <button class="btn-close-modal" id="btn-close-profile-modal">&times;</button>
+      </div>
+
+      <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Chọn hồ sơ đang học:</h4>
+      <div class="profile-list" id="modal-profile-list">
+        <!-- Dynamically rendered profile items -->
+      </div>
+
+      <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 1.25rem;">
+        <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.35rem;">
+          <span class="header-icon-slot" data-icon="plus"></span> Thêm hồ sơ người học mới:
+        </h4>
+        <form id="form-create-profile">
+          <div style="margin-bottom: 0.75rem;">
+            <label class="form-label">Tên người học (ví dụ: Bạn của tôi):</label>
+            <input type="text" class="form-input" id="new-profile-name" placeholder="Nhập tên..." required>
+          </div>
+          <div style="margin-bottom: 0.75rem;">
+            <label class="form-label">Mục tiêu trình độ:</label>
+            <select class="form-input" id="new-profile-level">
+              <option value="A1">A1 - Sơ cấp cơ bản</option>
+              <option value="A2">A2 - Sơ cấp nâng cao</option>
+              <option value="B1" selected>B1 - DELF B1 (Khuyên dùng)</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 0.75rem;">
+            <label class="form-label">Cổng AI Gateway:</label>
+            <select class="form-input" id="new-profile-provider">
+              <option value="omniroute" selected>OmniRoute (Khuyên dùng)</option>
+              <option value="anthropic">Anthropic API Trực tiếp</option>
+              <option value="openai">OpenAI Trực tiếp</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 1.25rem;">
+            <label class="form-label">API Key (tùy chọn, để trống sẽ dùng Demo Mock):</label>
+            <input type="password" class="form-input" id="new-profile-apikey" placeholder="sk-...">
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%;">Tạo hồ sơ và Bắt đầu học</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CÀI ĐẶT API & OMNIROUTE ================= -->
+  <div class="modal-overlay hidden" id="modal-settings">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 0.4rem;">
+          <span class="header-icon-slot" data-icon="settings"></span> Cấu Hình API & Hồ Sơ Hiện Tại
+        </h3>
+        <button class="btn-close-modal" id="btn-close-settings-modal">&times;</button>
+      </div>
+
+      <form id="form-profile-settings">
+        <div style="margin-bottom: 0.75rem;">
+          <label class="form-label">Tên hiển thị:</label>
+          <input type="text" class="form-input" id="settings-profile-name" required>
+        </div>
+
+        <div style="margin-bottom: 0.75rem;">
+          <label class="form-label">Trình độ đang học:</label>
+          <select class="form-input" id="settings-profile-level">
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1">B1 (DELF B1)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 0.75rem;">
+          <label class="form-label">Nhà cung cấp AI:</label>
+          <select class="form-input" id="settings-provider">
+            <option value="omniroute">OmniRoute Gateway (OpenAI Compatible)</option>
+            <option value="anthropic">Anthropic Messages API</option>
+            <option value="openai">OpenAI API</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 0.75rem;">
+          <label class="form-label">OmniRoute / Custom Base URL:</label>
+          <input type="text" class="form-input" id="settings-baseurl" placeholder="https://api.omniroute.io/v1">
+          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Mặc định: <code>https://api.omniroute.io/v1</code></small>
+        </div>
+
+        <div style="margin-bottom: 0.75rem;">
+          <label class="form-label">Model AI:</label>
+          <input type="text" class="form-input" id="settings-model" placeholder="claude-3-7-sonnet hoặc gpt-4o-mini">
+          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">Hỗ trợ <code>claude-3-7-sonnet</code>, <code>claude-3-5-sonnet</code>, <code>gpt-4o-mini</code>...</small>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+          <label class="form-label">API Key của bạn:</label>
+          <input type="password" class="form-input" id="settings-apikey" placeholder="Nhập API Key...">
+          <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">API Key được lưu trữ an toàn trong localStorage trình duyệt của riêng bạn.</small>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%;">
+          <span class="btn-icon-slot" data-icon="check"></span> Lưu Thay Đổi
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script src="js/icons.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/ai-service.js"></script>
+  <script src="js/speaking.js"></script>
+  <script src="js/reading.js"></script>
+  <script src="js/listening.js"></script>
+  <script src="js/seed-bank.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

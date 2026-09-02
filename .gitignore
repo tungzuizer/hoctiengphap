@@ -1,0 +1,28 @@
+# 1. Importers/Callers: Git VCS system (.gitignore)
+# 2. Affected API: Git version control exclusion rules
+# 3. Data Schemas: Standard gitignore pattern lines
+# 4. User's Verbatim Instruction: "push code lên gith https://github.com/tungzuizer/hoctiengphap.git"
+
+# Node & Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Claude local cache & external skill kits
+.claude/
+Agent-Reach/
+andrej-karpathy-skills/
+codegraph/
+ECC/
