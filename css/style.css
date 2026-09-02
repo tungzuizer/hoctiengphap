@@ -2532,15 +2532,36 @@ body {
 /* ================= Comprehensive Mobile & Tablet Responsive Design (Apple HIG) ================= */
 @media (max-width: 768px) {
   .app-container {
-    padding: 1rem 0.85rem 6.25rem; /* generous bottom clearance for fixed iOS TabBar */
+    padding: 0.75rem 0.75rem 6.5rem; /* generous bottom clearance for fixed iOS TabBar */
+    gap: 0.9rem;
+  }
+
+  /* Sticky Frosted Header */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background: rgba(248, 249, 253, 0.88);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  [data-theme="dark"] .app-header {
+    background: rgba(11, 14, 23, 0.88);
   }
 
   .header-inner {
-    padding: 0 0.85rem;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .brand-logo-badge {
+    width: 34px;
+    height: 34px;
   }
 
   .brand-title {
-    font-size: 1.12rem;
+    font-size: 1.08rem;
   }
 
   .brand-subtitle {
@@ -2548,8 +2569,14 @@ body {
   }
 
   .profile-badge-btn {
-    padding: 0.35rem 0.65rem;
-    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.78rem;
+    gap: 0.35rem;
+  }
+
+  .profile-level-tag {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.35rem;
   }
 
   /* Fixed iOS Bottom Tab Bar Navigation */
@@ -2559,33 +2586,47 @@ body {
     left: 0;
     right: 0;
     margin: 0;
-    padding: 0.45rem 0.5rem calc(0.45rem + env(safe-area-inset-bottom, 0px));
-    background: var(--card-bg);
+    padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom, 8px));
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(32px) saturate(200%);
     -webkit-backdrop-filter: blur(32px) saturate(200%);
     border-top: 1px solid var(--border-color);
     border-radius: 0;
     z-index: 150;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  [data-theme="dark"] .nav-tabs-wrapper {
+    background: rgba(16, 20, 32, 0.92);
   }
 
   .nav-tabs {
     background: transparent;
     border: none;
     padding: 0;
-    gap: 0.2rem;
+    gap: 0.25rem;
     display: flex;
     justify-content: space-around;
   }
 
   .nav-tab {
+    flex: 1;
     flex-direction: column;
     gap: 0.15rem;
-    padding: 0.35rem 0.2rem;
-    font-size: 0.72rem;
+    padding: 0.4rem 0.2rem;
+    font-size: 0.7rem;
     border-radius: var(--radius-sm);
     min-height: 48px;
     justify-content: center;
+    background: transparent;
+    color: var(--text-muted);
+  }
+
+  .nav-tab.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 700;
+    box-shadow: none;
   }
 
   .nav-tab .tab-icon-slot svg {
@@ -2600,114 +2641,343 @@ body {
   /* Cute Welcome Banner Mobile Optimization */
   .welcome-banner {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.85rem;
+    align-items: stretch;
+    gap: 0.75rem;
     padding: 1rem 1.15rem;
     border-radius: var(--radius-lg);
   }
 
+  .welcome-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .welcome-avatar-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+  }
+
   .welcome-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
+  }
+
+  .welcome-sub {
+    font-size: 0.8rem;
+    line-height: 1.35;
   }
 
   .welcome-chips {
     width: 100%;
+    display: flex;
     justify-content: flex-start;
     gap: 0.4rem;
   }
 
   .welcome-chip {
-    padding: 0.3rem 0.75rem;
-    font-size: 0.76rem;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.75rem;
   }
 
-  /* Speaking Siri Hero Card on Mobile */
+  /* Speaking Studio Hero Card on Mobile */
   .mic-hero-card {
-    padding: 1.75rem 1rem;
+    padding: 1.35rem 1rem;
     border-radius: var(--radius-lg);
   }
 
   .btn-mic {
-    width: 86px;
-    height: 86px;
+    width: 78px;
+    height: 78px;
+  }
+
+  .mic-status {
+    font-size: 0.88rem;
+  }
+
+  .sound-wave-bars {
+    height: 20px;
+    margin: 0.35rem 0;
+  }
+
+  .live-transcript-box {
+    font-size: 0.82rem;
+    padding: 0.5rem 0.85rem;
   }
 
   .text-fallback-input {
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: row;
+    gap: 0.4rem;
+    margin-top: 1rem;
+  }
+
+  .text-fallback-input .text-input {
+    font-size: 16px; /* Prevents auto-zoom in iOS Safari */
+    min-height: 42px;
+    padding: 0.65rem 0.85rem;
   }
 
   .text-fallback-input .btn-primary {
-    width: 100%;
-    justify-content: center;
+    min-height: 42px;
+    padding: 0.65rem 1rem;
+    flex-shrink: 0;
   }
 
-  /* Form & Interactive Tap Target Ergonomics (>= 44px) */
-  .text-input, .textarea-input, .select-input {
-    font-size: 16px; /* Prevents auto-zoom in iOS Mobile Safari */
-    min-height: 44px;
-    padding: 0.75rem 0.95rem;
+  /* Horizontal Snap Carousel for Topic Cards on Mobile */
+  .topics-bento-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 0.65rem;
+    padding: 0.25rem 0.15rem 0.65rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 0.5rem;
   }
 
-  .btn-primary, .btn-secondary, .btn-outline {
-    min-height: 44px;
+  .topics-bento-grid::-webkit-scrollbar {
+    display: none;
   }
 
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+  .topic-card-chip {
+    flex: 0 0 215px;
+    scroll-snap-align: start;
+    padding: 0.85rem;
+    border-radius: var(--radius-md);
   }
 
-  .filter-bar .btn-primary {
-    width: 100%;
-    justify-content: center;
+  .topic-chip-title {
+    font-size: 0.85rem;
+  }
+
+  .topic-chip-starter {
+    font-size: 0.74rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   /* Conversation Stream on Mobile */
   .conversation-section {
-    padding: 1rem;
+    padding: 1rem 0.85rem;
     border-radius: var(--radius-lg);
   }
 
+  .conversation-header {
+    margin-bottom: 0.85rem;
+  }
+
+  .conversation-header h3 {
+    font-size: 1.02rem;
+  }
+
+  .conversation-container {
+    max-height: 420px;
+    gap: 1rem;
+    padding: 0.25rem 0;
+  }
+
   .user-bubble {
-    max-width: 90%;
+    max-width: 88%;
     padding: 0.75rem 0.95rem;
+  }
+
+  .user-bubble .bubble-text {
     font-size: 0.9rem;
   }
 
   .tutor-bubble {
-    max-width: 95%;
-    padding: 0.85rem 1rem;
-    font-size: 0.9rem;
+    max-width: 94%;
+    padding: 0.85rem 0.95rem;
   }
 
-  /* Evaluation Results & DELF Grille on Mobile */
-  .delf-grid-card {
+  .french-highlight {
+    font-size: 0.92rem;
+  }
+
+  .feedback-card {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  .phonetics-diagnostic-card {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .phonetics-badge-title {
+    font-size: 0.82rem;
+  }
+
+  .phonetic-item-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  /* Atelier Phonétique on Mobile */
+  .atelier-phonetique-wrapper {
     padding: 1rem;
     border-radius: var(--radius-lg);
   }
 
-  .score-hero-display {
-    padding: 1rem 0.75rem;
+  .atelier-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
 
-  .score-huge-number {
-    font-size: 3rem;
-  }
-
-  /* Stats Grid on Mobile */
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-  }
-
-  .stat-card {
+  .atelier-card {
     padding: 1rem;
   }
 
+  .atelier-pair-item {
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* Reading & Listening Modules on Mobile */
+  .reading-article-card, .audio-player-card {
+    padding: 1.25rem 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .reading-passage {
+    font-size: 0.96rem;
+    line-height: 1.65;
+  }
+
+  .audio-player-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .btn-play-large {
+    padding: 0.75rem 1.45rem;
+    font-size: 0.9rem;
+  }
+
+  .rate-buttons {
+    padding: 0.15rem;
+  }
+
+  .btn-rate-option {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .question-card {
+    padding: 1.15rem 0.95rem;
+    border-radius: var(--radius-md);
+  }
+
+  .question-title {
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+
+  .option-item {
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-md);
+    min-height: 44px;
+    font-size: 0.88rem;
+  }
+
+  .option-letter {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  /* Seed Bank on Mobile */
+  .add-seed-card {
+    padding: 1.25rem 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .seed-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .seed-card {
+    padding: 1.15rem 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .seed-actions {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .seed-actions .btn-outline {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  /* Progress & Stats on Mobile */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+  }
+
+  .stat-card {
+    padding: 0.9rem;
+    border-radius: var(--radius-md);
+  }
+
+  .stat-icon-wrap {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.5rem;
+  }
+
   .stat-value {
-    font-size: 1.5rem;
+    font-size: 1.55rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .chart-card, .history-table-card {
+    padding: 1.15rem 0.95rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  /* Evaluation Results & DELF Grille on Mobile */
+  .eval-result-card {
+    padding: 1.25rem 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .eval-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .eval-score-ring {
+    align-self: flex-start;
+  }
+
+  .criteria-row {
+    padding: 0.85rem;
+    gap: 0.65rem;
   }
 
   /* Modals as iOS Bottom Sheet on Mobile */
@@ -2717,7 +2987,7 @@ body {
   }
 
   .modal-card {
-    border-radius: 28px 28px 0 0;
+    border-radius: 26px 26px 0 0;
     max-height: 88vh;
     overflow-y: auto;
     padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 16px));
@@ -2733,16 +3003,35 @@ body {
 }
 
 @media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .app-container {
+    padding: 0.5rem 0.5rem 6.25rem;
   }
 
-  .welcome-left {
-    gap: 0.75rem;
+  .brand-title {
+    font-size: 1rem;
   }
 
   .welcome-avatar-wrap {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .welcome-title {
+    font-size: 0.98rem;
+  }
+
+  .btn-mic {
+    width: 72px;
+    height: 72px;
+  }
+
+  .topic-card-chip {
+    flex: 0 0 190px;
+    padding: 0.75rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
   }
 }
