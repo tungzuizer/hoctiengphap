@@ -12,35 +12,36 @@ const AIService = {
     const baseUrl = (config?.baseUrl || (window.CONFIG ? window.CONFIG.DEFAULT_OMNIROUTE_BASE_URL : 'http://localhost:20128/v1')).replace(/\/+$/, '');
     const model = config?.model || (window.CONFIG ? window.CONFIG.DEFAULT_MODEL : 'antigravity/gemini-3.7-flash-tiered');
 
-    // Strategy 1: Check if running on Web Server with backend proxy (/api/ai)
+    // Strategy 1: Check if running on Web Server with backend proxy (/api/ai or http://localhost:3000/api/ai)
     // The server injects the API key from .env so frontend remains 100% secret & secure
-    const isWebOrigin = typeof window !== 'undefined' && window.location && (window.location.protocol === 'http:' || window.location.protocol === 'https:');
+    if (!apiKey) {
+      const endpointsToTry = ['/api/ai', 'http://localhost:3000/api/ai'];
+      for (const endpoint of endpointsToTry) {
+        try {
+          const proxyRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemPrompt,
+              messages,
+              temperature,
+              jsonMode,
+              model,
+              profileConfig: config ? { model: config.model, level: config.level } : null
+            })
+          });
 
-    if (isWebOrigin && !apiKey) {
-      try {
-        const proxyRes = await fetch('/api/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemPrompt,
-            messages,
-            temperature,
-            jsonMode,
-            model,
-            profileConfig: config ? { model: config.model, level: config.level } : null
-          })
-        });
-
-        if (proxyRes.ok) {
-          const data = await proxyRes.json();
-          if (data.success && data.content) {
-            return data.content;
-          } else if (data.error) {
-            throw new Error(data.error);
+          if (proxyRes.ok) {
+            const data = await proxyRes.json();
+            if (data.success && data.content) {
+              return data.content;
+            } else if (data.error) {
+              throw new Error(data.error);
+            }
           }
+        } catch (proxyErr) {
+          // Continue to next endpoint attempt
         }
-      } catch (proxyErr) {
-        console.warn('Backend proxy /api/ai not reachable or returned error:', proxyErr.message);
       }
     }
 
@@ -62,6 +63,21 @@ const AIService = {
     // Strategy 3: Mock fallback for offline or unconfigured instances
     console.warn('No API key provided and proxy unavailable. Falling back to Mock Demo Mode.');
     return this.mockResponse({ systemPrompt, messages, jsonMode });
+  },
+
+  // Health check to verify OmniRoute backend proxy connectivity
+  async checkGatewayStatus() {
+    const endpoints = ['/api/health', 'http://localhost:3000/api/health'];
+    for (const ep of endpoints) {
+      try {
+        const res = await fetch(ep, { method: 'GET' });
+        if (res.ok) {
+          const data = await res.json();
+          return { connected: true, data };
+        }
+      } catch (e) {}
+    }
+    return { connected: false };
   },
 
   // OmniRoute & OpenAI-Compatible Gateway Call
@@ -176,9 +192,9 @@ const AIService = {
     }
   },
 
-  // 1. Module Luyện Nói: Trò chuyện với giáo viên bản ngữ + Nhận xét lỗi + Sửa phát âm & Ngữ âm (Phonétique)
+  // 1. Module Luyện Nói: Trò chuyện với giáo viên bản ngữ + Nhận xét lỗi + Sửa phát âm + Đánh giá & Chấm điểm tức thì
   async chatWithTutor(userFrenchText, conversationHistory = [], level = 'B1') {
-    const systemPrompt = `Bạn là giáo viên tiếng Pháp bản ngữ kiêm chuyên gia sư phạm & chỉnh ngữ âm (Phonétique & Prononciation) cho học viên Việt Nam trình độ [${level}].
+    const systemPrompt = `Bạn là giáo viên tiếng Pháp bản ngữ kiêm chuyên gia sư phạm & giám khảo đánh giá năng lực hội thoại (DELF B1) cho học viên Việt Nam trình độ [${level}].
 
 QUY TẮC BẮT BUỘC:
 1. ĐA DẠNG HÓA CHỦ ĐỀ & PHẢN HỒI THEO ĐÚNG NGỮ CẢNH HỌC VIÊN NÓI:
@@ -199,14 +215,24 @@ QUY TẮC BẮT BUỘC:
    - Phân tích cạm bẫy phát âm người Việt hay mắc (âm câm lettre muette, âm mũi nasale [ɑ̃]/[ɔ̃]/[ɛ̃], âm [y] vs [u], âm R rung họng [ʁ], nối âm liaison bắt buộc).
    - Hướng dẫn khẩu hình miệng, vị trí lưỡi và cách bật hơi chuẩn người Paris.
    Định dạng mỗi dòng phát âm:
-   - [Từ/Cụm từ trong câu] (/phiên âm IPA/): Lời khuyên phát âm & khẩu hình cụ thể.`;
+   - [Từ/Cụm từ trong câu] (/phiên âm IPA/): Lời khuyên phát âm & khẩu hình cụ thể.
+
+4. ĐÁNH GIÁ & CHẤM ĐIỂM TỨC THÌ TỪNG CÂU (ÉVALUATION INSTANTANÉE):
+   - Xuống tiếp 2 dòng, ghi chính xác "Đánh giá câu:".
+   - Dòng 1: Điểm số trên thang 5.0 và quy đổi DELF /25 (Ví dụ: "- Điểm: 4.5/5.0 (Quy đổi DELF: 22.5/25)").
+     + Nếu học viên nhập tiếng Việt hoàn toàn: "- Điểm: 0.0/5.0 (Quy đổi DELF: 0.0/25)".
+     + Nếu câu ngắn hoặc có vài lỗi: "- Điểm: 3.0/5.0 (Quy đổi DELF: 15.0/25)".
+     + Nếu câu chuẩn, đúng ngữ pháp B1: "- Điểm: 4.5/5.0 (Quy đổi DELF: 22.5/25)".
+   - Dòng 2: "- Huy hiệu: [Xuất sắc (B1) | Rất tốt (B1) | Đạt chuẩn (A2+) | Cần lưu ý | Tiếng Việt (0.0/25)]".
+   - Dòng 3: "- Ngữ pháp: [Nhận xét nhanh 1 dòng về ngữ pháp/thì/mạo từ]".
+   - Dòng 4: "- Từ vựng: [Nhận xét nhanh 1 dòng về vốn từ và ngữ cảnh]".`;
 
     const messages = [];
     // Include last 6 turns for context
     const recentHistory = conversationHistory.slice(-6);
     recentHistory.forEach(item => {
       messages.push({ role: 'user', content: item.userText });
-      const assistantFullContent = `${item.frenchReply}\n\nNhận xét:\n${item.feedbackVi || ''}${item.phoneticsRaw ? `\n\nPhát âm & Ngữ âm:\n${item.phoneticsRaw}` : ''}`;
+      const assistantFullContent = `${item.frenchReply}\n\nNhận xét:\n${item.feedbackVi || ''}${item.phoneticsRaw ? `\n\nPhát âm & Ngữ âm:\n${item.phoneticsRaw}` : ''}${item.turnEvalRaw ? `\n\nĐánh giá câu:\n${item.turnEvalRaw}` : ''}`;
       messages.push({ role: 'assistant', content: assistantFullContent });
     });
 
@@ -218,20 +244,32 @@ QUY TẮC BẮT BUỘC:
       temperature: 0.6
     });
 
-    // Parse the 3 parts: French reply, Vietnamese feedback, Phonetics feedback
+    // Parse the 4 parts: French reply, Vietnamese feedback, Phonetics feedback, and Turn Evaluation
     let frenchReply = rawResponse;
     let feedbackVi = '';
     let phoneticsRaw = '';
+    let turnEvalRaw = '';
 
-    const splitPhonetics = rawResponse.match(/\n\s*Phát âm\s*(?:&|và)\s*Ngữ âm\s*:\s*/i) || rawResponse.match(/Phát âm\s*(?:&|và)\s*Ngữ âm\s*:\s*/i);
-    let textBeforePhonetics = rawResponse;
+    // 1. Split Turn Evaluation
+    const splitEval = rawResponse.match(/\n\s*Đánh\s*giá\s*(?:câu|lượt\s*nói)\s*:\s*/i) || rawResponse.match(/Đánh\s*giá\s*(?:câu|lượt\s*nói)\s*:\s*/i);
+    let textBeforeEval = rawResponse;
+    if (splitEval) {
+      const eIdx = splitEval.index;
+      textBeforeEval = rawResponse.substring(0, eIdx).trim();
+      turnEvalRaw = rawResponse.substring(eIdx + splitEval[0].length).trim();
+    }
+
+    // 2. Split Phonetics
+    const splitPhonetics = textBeforeEval.match(/\n\s*Phát âm\s*(?:&|và)\s*Ngữ âm\s*:\s*/i) || textBeforeEval.match(/Phát âm\s*(?:&|và)\s*Ngữ âm\s*:\s*/i);
+    let textBeforePhonetics = textBeforeEval;
 
     if (splitPhonetics) {
       const pIdx = splitPhonetics.index;
-      textBeforePhonetics = rawResponse.substring(0, pIdx).trim();
-      phoneticsRaw = rawResponse.substring(pIdx + splitPhonetics[0].length).trim();
+      textBeforePhonetics = textBeforeEval.substring(0, pIdx).trim();
+      phoneticsRaw = textBeforeEval.substring(pIdx + splitPhonetics[0].length).trim();
     }
 
+    // 3. Split Vietnamese Feedback
     const splitFeedback = textBeforePhonetics.match(/\n\s*Nhận xét\s*:\s*/i) || textBeforePhonetics.match(/Nhận xét\s*:\s*/i);
     if (splitFeedback) {
       const fIdx = splitFeedback.index;
@@ -241,14 +279,93 @@ QUY TẮC BẮT BUỘC:
       frenchReply = textBeforePhonetics.trim();
     }
 
-    // Parse structured phonetic items
+    // Parse structured phonetic items and turn evaluation
     const parsedPhonetics = this.parsePhoneticsList(phoneticsRaw);
+    const turnEval = this.parseTurnEvaluation(turnEvalRaw, userFrenchText);
 
     return {
       frenchReply: frenchReply || 'Très bien, continuons la conversation !',
       feedbackVi: feedbackVi || 'Rất tốt! Câu nói của bạn tự nhiên và không mắc lỗi ngữ pháp đáng kể.',
       phoneticsRaw,
-      phonetics: parsedPhonetics
+      phonetics: parsedPhonetics,
+      turnEvalRaw,
+      turnEval
+    };
+  },
+
+  // Helper to parse real-time turn evaluation into structured score card
+  parseTurnEvaluation(rawText, userFrenchText = '') {
+    const isVietnamese = /[ăắằẳẵặấầẩẫậếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúủũụứừửữựýỳỷỹỵđ]/i.test(userFrenchText) ||
+      /\b(tôi|bạn|chúng\s*tôi|không|có\s*thể|chỉnh|phát\s*âm|tiếng\s*việt|giúp|với|ăn|uống|bây\s*giờ)\b/i.test(userFrenchText);
+
+    if (isVietnamese) {
+      return {
+        score: 0.0,
+        maxScore: 5.0,
+        delfEquivalent: 0.0,
+        badge: 'Tiếng Việt (0.0/25)',
+        badgeClass: 'score-low',
+        grammarNote: 'Chưa sử dụng tiếng Pháp (Quy chế thi DELF tính 0 điểm)',
+        lexiqueNote: 'Hãy thử bấm nút Micro và nói câu tiếng Pháp mẫu',
+        stars: '⭐'
+      };
+    }
+
+    if (!rawText) {
+      const wordCount = (userFrenchText || '').trim().split(/\s+/).filter(Boolean).length;
+      const score = Math.min(5.0, Math.max(2.5, +(2.5 + Math.min(wordCount, 12) * 0.2).toFixed(1)));
+      const delfEquivalent = +(score * 5).toFixed(1);
+      return {
+        score,
+        maxScore: 5.0,
+        delfEquivalent,
+        badge: score >= 4.2 ? 'Xuất sắc (B1)' : score >= 3.5 ? 'Rất tốt (B1)' : 'Đạt chuẩn (A2+)',
+        badgeClass: score >= 4.2 ? 'score-perfect' : score >= 3.5 ? 'score-good' : 'score-medium',
+        grammarNote: 'Cấu trúc câu rõ ràng, diễn đạt tự nhiên',
+        lexiqueNote: 'Vốn từ vựng tương thích ngữ cảnh hội thoại',
+        stars: score >= 4.2 ? '⭐⭐⭐⭐⭐' : score >= 3.5 ? '⭐⭐⭐⭐' : '⭐⭐⭐'
+      };
+    }
+
+    let score = 4.0;
+    const scoreMatch = rawText.match(/(\d+(?:[.,]\d+)?)\s*\/\s*5/);
+    if (scoreMatch) {
+      score = parseFloat(scoreMatch[1].replace(',', '.'));
+    } else {
+      const singleScore = rawText.match(/Điểm\s*:\s*(\d+(?:[.,]\d+)?)/i);
+      if (singleScore) score = parseFloat(singleScore[1].replace(',', '.'));
+    }
+
+    let delfEquivalent = +(score * 5).toFixed(1);
+    const delfMatch = rawText.match(/(\d+(?:[.,]\d+)?)\s*\/\s*25/);
+    if (delfMatch) {
+      delfEquivalent = parseFloat(delfMatch[1].replace(',', '.'));
+    }
+
+    let badge = 'Rất tốt (B1)';
+    const badgeMatch = rawText.match(/Huy\s*hiệu\s*:\s*([^\n\r]+)/i);
+    if (badgeMatch) badge = badgeMatch[1].trim();
+
+    let grammarNote = 'Cấu trúc câu chính xác, chia đúng thì';
+    const gramMatch = rawText.match(/Ngữ\s*pháp\s*:\s*([^\n\r]+)/i);
+    if (gramMatch) grammarNote = gramMatch[1].trim();
+
+    let lexiqueNote = 'Vốn từ vựng chuẩn xác và phong phú';
+    const lexMatch = rawText.match(/Từ\s*vựng\s*:\s*([^\n\r]+)/i);
+    if (lexMatch) lexiqueNote = lexMatch[1].trim();
+
+    const badgeClass = score >= 4.5 ? 'score-perfect' : score >= 3.5 ? 'score-good' : score >= 2.5 ? 'score-medium' : 'score-low';
+    const stars = score >= 4.5 ? '⭐⭐⭐⭐⭐' : score >= 3.5 ? '⭐⭐⭐⭐' : score >= 2.5 ? '⭐⭐⭐' : '⭐⭐';
+
+    return {
+      score,
+      maxScore: 5.0,
+      delfEquivalent,
+      badge,
+      badgeClass,
+      grammarNote,
+      lexiqueNote,
+      stars
     };
   },
 
@@ -676,7 +793,13 @@ Khi muốn nhờ giáo viên sửa phát âm, trong tiếng Pháp bạn hãy dù
 Phát âm & Ngữ âm:
 - Pouvez-vous (/puve vu/): Âm [u] trong "pouvez" chu tròn môi sâu, nối âm nhẹ giữa -z và vous.
 - corriger (/kɔʁiʒe/): Chú ý âm [ʁ] rung nhẹ ở đáy cổ họng và âm [ʒ] rung mềm.
-- prononciation (/pʁɔnɔ̃sjasjɔ̃/): Có 2 âm mũi [ɔ̃] ("on" và "on"), hạ hàm mềm để hơi thoát lên khoang mũi.`;
+- prononciation (/pʁɔnɔ̃sjasjɔ̃/): Có 2 âm mũi [ɔ̃] ("on" và "on"), hạ hàm mềm để hơi thoát lên khoang mũi.
+
+Đánh giá câu:
+- Điểm: 0.0/5.0 (Quy đổi DELF: 0.0/25)
+- Huy hiệu: Tiếng Việt (0.0/25)
+- Ngữ pháp: Câu nhập bằng tiếng Việt, chưa sử dụng cấu trúc tiếng Pháp
+- Từ vựng: Hãy thử nói mẫu câu tiếng Pháp gợi ý ở trên`;
       }
 
       // 1.2 Chủ đề ăn uống ("tôi sẽ ăn bây giờ", "ăn cơm", "đói", "món ăn")
@@ -689,7 +812,13 @@ Nhận xét:
 Phát âm & Ngữ âm:
 - Je vais (/ʒə vɛ/): Âm [ʒə] phát âm nhẹ, âm [ɛ] mở miệng tự nhiên như âm "e" tiếng Việt.
 - manger (/mɑ̃ʒe/): Âm mũi [ɑ̃] mở rộng khẩu hình miệng, âm [ʒ] rung nhẹ đầu lưỡi, đuôi "-er" đọc là [e].
-- maintenant (/mɛ̃tnɑ̃/): Phân biệt rõ âm mũi [ɛ̃] ("main") và âm mũi [ɑ̃] ("nant"), không khép môi tạo âm "n".`;
+- maintenant (/mɛ̃tnɑ̃/): Phân biệt rõ âm mũi [ɛ̃] ("main") và âm mũi [ɑ̃] ("nant"), không khép môi tạo âm "n".
+
+Đánh giá câu:
+- Điểm: 0.0/5.0 (Quy đổi DELF: 0.0/25)
+- Huy hiệu: Tiếng Việt (0.0/25)
+- Ngữ pháp: Chưa áp dụng tiếng Pháp vào hội thoại
+- Từ vựng: Cần chuyển đổi sang các từ tiếng Pháp như manger, repas, maintenant`;
       }
 
       // 1.3 Chủ đề du lịch ("du lịch", "kỳ nghỉ", "đi chơi", "paris", "pháp")
@@ -702,7 +831,13 @@ Nhận xét:
 Phát âm & Ngữ âm:
 - voyager (/vwajaʒe/): Chú ý tổ hợp âm [vwa] và đuôi "-er" phát âm là [e].
 - vacances (/vakɑ̃s/): Âm mũi [ɑ̃] mở rộng khẩu hình, đuôi "-ces" phát âm rõ âm gió [s].
-- visiter (/vizite/): Chữ "s" đứng giữa 2 nguyên âm phát âm thành [z].`;
+- visiter (/vizite/): Chữ "s" đứng giữa 2 nguyên âm phát âm thành [z].
+
+Đánh giá câu:
+- Điểm: 0.0/5.0 (Quy đổi DELF: 0.0/25)
+- Huy hiệu: Tiếng Việt (0.0/25)
+- Ngữ pháp: Câu tiếng Việt (DELF B1 yêu cầu sản sinh tiếng Pháp)
+- Từ vựng: Hãy thực hành các từ: voyage, vacances, visiter`;
       }
 
       // 1.4 Chủ đề công việc & học tập ("đi làm", "công việc", "học tập", "trường học")
@@ -715,7 +850,13 @@ Khi giới thiệu nghề nghiệp trong tiếng Pháp, không dùng mạo từ 
 Phát âm & Ngữ âm:
 - travail (/tʁavaj/): Chú ý âm [ʁ] rung đáy họng và âm [j] (yod) ở đuôi.
 - étudiant (/etydjɑ̃/): Âm [y] trong "é-tu" (khẩu hình chữ i nhưng chu tròn môi) và âm mũi [ɑ̃] ở cuối.
-- entreprise (/ɑ̃tʁəpʁiz/): Âm mũi [ɑ̃] ở đầu và chữ "s" phát âm thành [z].`;
+- entreprise (/ɑ̃tʁəpʁiz/): Âm mũi [ɑ̃] ở đầu và chữ "s" phát âm thành [z].
+
+Đánh giá câu:
+- Điểm: 0.0/5.0 (Quy đổi DELF: 0.0/25)
+- Huy hiệu: Tiếng Việt (0.0/25)
+- Ngữ pháp: Chưa tạo câu bằng tiếng Pháp
+- Từ vựng: Cần ứng dụng từ vựng công việc/học tập tiếng Pháp`;
       }
 
       // 1.5 Lời chào & giới thiệu ("xin chào", "tôi tên là", "giới thiệu")
@@ -728,7 +869,13 @@ Cấu trúc giới thiệu bản thân chuẩn: "Bonjour, je m'appelle [Tên]". 
 Phát âm & Ngữ âm:
 - Bonjour (/bɔ̃ʒuʁ/): Âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ], không đọc thành "bông-dua".
 - je m'appelle (/ʒə mapɛl/): Âm [ʒə] phát âm nhẹ, âm "e" cuối là âm câm.
-- enchanté (/ɑ̃ʃɑ̃te/): Có 2 âm mũi [ɑ̃] mở rộng khẩu hình.`;
+- enchanté (/ɑ̃ʃɑ̃te/): Có 2 âm mũi [ɑ̃] mở rộng khẩu hình.
+
+Đánh giá câu:
+- Điểm: 0.0/5.0 (Quy đổi DELF: 0.0/25)
+- Huy hiệu: Tiếng Việt (0.0/25)
+- Ngữ pháp: Câu nhập liệu tiếng Việt
+- Từ vựng: Hãy bắt đầu bằng lời chào "Bonjour" và "Je m'appelle..."`;
       }
 
       // 1.6 Tiếng Việt tổng quát khác
@@ -740,7 +887,13 @@ Khi muốn bắt đầu giao tiếp bằng tiếng Pháp, bạn có thể dùng 
 Phát âm & Ngữ âm:
 - Bonjour (/bɔ̃ʒuʁ/): Âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ].
 - français (/fʁɑ̃sɛ/): Âm mũi [ɑ̃] và đuôi "-ais" đọc là [ɛ], không đọc chữ "s" cuối.
-- s'exprimer (/sɛkspʁime/): Chú ý tổ hợp âm [spʁ] và đuôi "-er" đọc là [e].`;
+- s'exprimer (/sɛkspʁime/): Chú ý tổ hợp âm [spʁ] và đuôi "-er" đọc là [e].
+
+Đánh giá câu:
+- Điểm: 0.0/5.0 (Quy đổi DELF: 0.0/25)
+- Huy hiệu: Tiếng Việt (0.0/25)
+- Ngữ pháp: Chưa đạt yêu cầu ngôn ngữ đích
+- Từ vựng: Hãy luyện tập theo câu tiếng Pháp mẫu`;
     }
 
     // ================= 2. XỬ LÝ KHI HỌC VIÊN NÓI TIẾNG PHÁP =================
@@ -754,7 +907,13 @@ Bạn đã diễn đạt về chủ đề ăn uống rất tự nhiên! Hãy lư
 Phát âm & Ngữ âm:
 - manger (/mɑ̃ʒe/): Âm mũi [ɑ̃] mở rộng miệng, âm [ʒ] rung mềm, đuôi "-er" đọc là [e].
 - repas (/ʁəpa/): Âm [ʁ] rung đáy họng nhẹ, chữ "s" cuối là âm câm (lettre muette).
-- cuisine (/kɥizin/): Âm bán nguyên âm [ɥ] chu môi kết hợp [i], chữ "s" nằm giữa 2 nguyên âm đọc là [z].`;
+- cuisine (/kɥizin/): Âm bán nguyên âm [ɥ] chu môi kết hợp [i], chữ "s" nằm giữa 2 nguyên âm đọc là [z].
+
+Đánh giá câu:
+- Điểm: 4.5/5.0 (Quy đổi DELF: 22.5/25)
+- Huy hiệu: Xuất sắc (B1)
+- Ngữ pháp: Dùng thì và mạo từ chính xác, cấu trúc tự nhiên
+- Từ vựng: Vốn từ về ẩm thực phong phú và chuẩn xác`;
     }
 
     // 2.2 Chủ đề Du lịch & Kỳ nghỉ (Travel & Holidays)
@@ -767,7 +926,13 @@ Nhận xét:
 Phát âm & Ngữ âm:
 - voyage (/vwajaʒ/): Phát âm rõ tổ hợp âm [vwa] và âm [ʒ] rung nhẹ ở đuôi.
 - vacances (/vakɑ̃s/): Âm mũi [ɑ̃] mở rộng khẩu hình, đuôi "-ces" phát âm rõ [s].
-- visiter (/vizite/): Chữ "s" nằm giữa 2 nguyên âm phát âm thành [z].`;
+- visiter (/vizite/): Chữ "s" nằm giữa 2 nguyên âm phát âm thành [z].
+
+Đánh giá câu:
+- Điểm: 4.6/5.0 (Quy đổi DELF: 23.0/25)
+- Huy hiệu: Xuất sắc (B1)
+- Ngữ pháp: Giới từ địa danh và thì câu diễn đạt rất chuẩn
+- Từ vựng: Từ vựng du lịch và trải nghiệm rất phong phú`;
     }
 
     // 2.3 Chủ đề Công việc & Học tập (Work & Studies)
@@ -780,7 +945,13 @@ Diễn đạt về công việc/học tập rất mạch lạc! Hãy chú ý hò
 Phát âm & Ngữ âm:
 - travail (/tʁavaj/): Chú ý âm [ʁ] rung đáy họng và âm [j] (yod) ở đuôi.
 - étudiant (/etydjɑ̃/): Âm [y] trong "é-tu" (chu tròn môi giữ khẩu hình chữ i) và âm mũi [ɑ̃] ở cuối.
-- projet (/pʁɔʒɛ/): Âm tổ hợp [pʁ] và âm [ʒ], chữ "t" cuối là âm câm.`;
+- projet (/pʁɔʒɛ/): Âm tổ hợp [pʁ] và âm [ʒ], chữ "t" cuối là âm câm.
+
+Đánh giá câu:
+- Điểm: 4.4/5.0 (Quy đổi DELF: 22.0/25)
+- Huy hiệu: Rất tốt (B1)
+- Ngữ pháp: Chia động từ và hòa hợp giống số tốt
+- Từ vựng: Thuật ngữ công việc và học tập rõ ràng`;
     }
 
     // 2.4 Chủ đề Thói quen & Cuộc sống thường nhật (Daily Routine)
@@ -793,7 +964,13 @@ Bạn đã diễn đạt thói quen sinh hoạt rất tốt. Lưu ý các độn
 Phát âm & Ngữ âm:
 - journée (/ʒuʁne/): Âm [ʒ] rung nhẹ, âm [u] chu sâu và đuôi "-ée" phát âm dứt khoát.
 - habitude (/abityd/): Chữ "h" câm hoàn toàn, âm [y] chu tròn môi như huýt sáo.
-- quotidien (/kɔtidjɛ̃/): Âm mũi [ɛ̃] ở cuối, bè môi sang hai bên.`;
+- quotidien (/kɔtidjɛ̃/): Âm mũi [ɛ̃] ở cuối, bè môi sang hai bên.
+
+Đánh giá câu:
+- Điểm: 4.3/5.0 (Quy đổi DELF: 21.5/25)
+- Huy hiệu: Rất tốt (B1)
+- Ngữ pháp: Vận dụng tốt động từ phản thân chỉ thói quen
+- Từ vựng: Từ chỉ thời gian và hoạt động sinh hoạt chuẩn`;
     }
 
     // 2.5 Chủ đề Sở thích, Âm nhạc, Điện ảnh (Hobbies & Arts)
@@ -806,7 +983,13 @@ Từ vựng về sở thích được sử dụng rất tự nhiên. Hãy lưu �
 Phát âm & Ngữ âm:
 - musique (/myzik/): Âm [y] trong "mu" kết hợp chữ "s" phát âm là [z].
 - cinéma (/sinema/): Chữ "c" đứng trước "i" phát âm là [s], không đọc là "ki-nê-ma".
-- passion (/pasjɔ̃/): Âm mũi [ɔ̃] chu môi tròn nhỏ.`;
+- passion (/pasjɔ̃/): Âm mũi [ɔ̃] chu môi tròn nhỏ.
+
+Đánh giá câu:
+- Điểm: 4.5/5.0 (Quy đổi DELF: 22.5/25)
+- Huy hiệu: Xuất sắc (B1)
+- Ngữ pháp: Mạo từ xác định và động từ chỉ sở thích chính xác
+- Từ vựng: Diễn đạt sở thích sinh động`;
     }
 
     // 2.6 Chủ đề Dự định & Bày tỏ quan điểm DELF B1 (Future Plans & Opinion)
@@ -819,7 +1002,13 @@ Lập luận rất tốt! Bạn đã sử dụng các liên từ liên kết (co
 Phát âm & Ngữ âm:
 - avis (/avi/): Chữ "s" cuối là âm câm, không phát âm âm gió thừa.
 - opinion (/ɔpinjɔ̃/): Âm mũi [ɔ̃] ở cuối.
-- important (/ɛ̃pɔʁtɑ̃/): Âm mũi [ɛ̃] ở đầu và [ɑ̃] ở đuôi, chữ "t" cuối là âm câm.`;
+- important (/ɛ̃pɔʁtɑ̃/): Âm mũi [ɛ̃] ở đầu và [ɑ̃] ở đuôi, chữ "t" cuối là âm câm.
+
+Đánh giá câu:
+- Điểm: 4.7/5.0 (Quy đổi DELF: 23.5/25)
+- Huy hiệu: Xuất sắc (B1)
+- Ngữ pháp: Cấu trúc lập luận chặt chẽ, liên từ chuẩn B1
+- Từ vựng: Từ vựng trừu tượng và bày tỏ quan điểm sâu sắc`;
     }
 
     // 2.7 Lời chào & Giới thiệu bản thân (Greetings & Intro)
@@ -832,7 +1021,13 @@ Lời chào và giới thiệu rất chuẩn xác, lịch sự và tự nhiên. 
 Phát âm & Ngữ âm:
 - Bonjour (/bɔ̃ʒuʁ/): Âm mũi [ɔ̃] chu môi tròn nhỏ và âm rung họng [ʁ], không đọc thành "bông-dua".
 - je m'appelle (/ʒə mapɛl/): Âm [ʒə] phát âm nhẹ, âm "e" cuối là âm câm.
-- enchanté (/ɑ̃ʃɑ̃te/): Có 2 âm mũi [ɑ̃] mở rộng khẩu hình.`;
+- enchanté (/ɑ̃ʃɑ̃te/): Có 2 âm mũi [ɑ̃] mở rộng khẩu hình.
+
+Đánh giá câu:
+- Điểm: 4.2/5.0 (Quy đổi DELF: 21.0/25)
+- Huy hiệu: Rất tốt (B1)
+- Ngữ pháp: Chào hỏi và xưng hô tự nhiên, chính xác
+- Từ vựng: Từ vựng giao tiếp mở đầu chuẩn CEFR`;
     }
 
     // 2.8 Phản hồi tổng quát tiếng Pháp (Trích xuất từ vựng thực tế trong câu của học viên)
@@ -847,7 +1042,13 @@ Câu nói của bạn rất mạch lạc và diễn đạt đúng ý. Hãy tiế
 
 Phát âm & Ngữ âm:
 - ${sampleWord1} : Hãy chú ý phát âm rõ các nguyên âm và giữ đúng vị trí âm câm nếu có ở cuối từ.
-- ${sampleWord2} : Giữ khẩu hình chuẩn xác và nối âm mượt mà với từ kế tiếp.`;
+- ${sampleWord2} : Giữ khẩu hình chuẩn xác và nối âm mượt mà với từ kế tiếp.
+
+Đánh giá câu:
+- Điểm: 4.1/5.0 (Quy đổi DELF: 20.5/25)
+- Huy hiệu: Rất tốt (B1)
+- Ngữ pháp: Cấu trúc câu ổn định, diễn đạt rõ ý
+- Từ vựng: Phù hợp với ngữ cảnh hội thoại`;
   },
 
   // Dynamic Barem Evaluator for Simulation / Demo Mode

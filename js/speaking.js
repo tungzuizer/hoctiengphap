@@ -163,7 +163,9 @@ const SpeakingModule = {
       frenchReply: '...',
       feedbackVi: 'Đang phân tích ngữ pháp, từ vựng và ngữ âm phát âm...',
       phoneticsRaw: '',
-      phonetics: []
+      phonetics: [],
+      turnEvalRaw: '',
+      turnEval: null
     };
 
     this.conversation.push(newTurn);
@@ -177,11 +179,13 @@ const SpeakingModule = {
     try {
       const response = await window.AIService.chatWithTutor(frenchText, this.conversation.slice(0, -1), level);
 
-      // Update turn with 3 components: French reply, grammar feedback, and phonetics diagnostic
+      // Update turn with 4 components: French reply, grammar feedback, phonetics diagnostic, and real-time turn evaluation
       newTurn.frenchReply = response.frenchReply;
       newTurn.feedbackVi = response.feedbackVi;
       newTurn.phoneticsRaw = response.phoneticsRaw || '';
       newTurn.phonetics = response.phonetics || [];
+      newTurn.turnEvalRaw = response.turnEvalRaw || '';
+      newTurn.turnEval = response.turnEval || null;
 
       // Save history
       window.StateManager.saveConversationHistory(this.conversation);
@@ -202,6 +206,8 @@ const SpeakingModule = {
   },
 
   renderConversation() {
+    this.updateCumulativeScoreMeter();
+
     const container = document.getElementById('conversation-container');
     if (!container) return;
 
@@ -219,6 +225,42 @@ const SpeakingModule = {
     }
 
     container.innerHTML = this.conversation.map((turn, index) => {
+      // Build Turn-by-Turn Real-time Assessment Card
+      let turnEvalHTML = '';
+      if (turn.turnEval) {
+        const ev = turn.turnEval;
+        turnEvalHTML = `
+          <div class="turn-eval-card">
+            <div class="turn-eval-header">
+              <div class="turn-eval-title-wrap">
+                <span class="turn-eval-icon">${window.Icons.get('award', '', 14)}</span>
+                <span class="turn-eval-title">Đánh giá tức thì:</span>
+                <span class="turn-eval-stars">${ev.stars || '⭐⭐⭐⭐'}</span>
+              </div>
+              <div class="turn-eval-score-wrap">
+                <span class="turn-eval-badge ${ev.badgeClass || 'score-good'}">${this.escapeHTML(ev.badge || 'Đạt chuẩn')}</span>
+                <span class="turn-eval-score">${ev.score != null ? ev.score.toFixed(1) : '4.0'}/5.0</span>
+                <span class="turn-eval-delf">(${ev.delfEquivalent != null ? ev.delfEquivalent.toFixed(1) : '20.0'}/25 DELF)</span>
+              </div>
+            </div>
+            <div class="turn-eval-details">
+              ${ev.grammarNote ? `
+                <div class="turn-eval-row">
+                  <span class="eval-tag eval-tag-grammar">Ngữ pháp</span>
+                  <span class="eval-text">${this.escapeHTML(ev.grammarNote)}</span>
+                </div>
+              ` : ''}
+              ${ev.lexiqueNote ? `
+                <div class="turn-eval-row">
+                  <span class="eval-tag eval-tag-lexique">Từ vựng</span>
+                  <span class="eval-text">${this.escapeHTML(ev.lexiqueNote)}</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
       // Build Phonetics Section if available
       let phoneticsHTML = '';
       if (turn.phonetics && turn.phonetics.length > 0) {
@@ -314,6 +356,9 @@ const SpeakingModule = {
             </div>
             <div class="bubble-text french-highlight">${this.escapeHTML(turn.frenchReply)}</div>
 
+            <!-- Turn-by-Turn Instant Assessment Card -->
+            ${turnEvalHTML}
+
             <!-- Feedback note card (Grammar & Lexique) -->
             <div class="feedback-card">
               <div class="feedback-title">
@@ -330,6 +375,40 @@ const SpeakingModule = {
     }).join('');
 
     container.scrollTop = container.scrollHeight;
+  },
+
+  // Update Live Cumulative Score Meter on the top bar
+  updateCumulativeScoreMeter() {
+    const valEl = document.getElementById('live-score-val');
+    const pillEl = document.getElementById('live-score-pill');
+    if (!valEl || !pillEl) return;
+
+    const evaluatedTurns = this.conversation.filter(t => t.turnEval && typeof t.turnEval.score === 'number');
+    if (evaluatedTurns.length === 0) {
+      valEl.textContent = '--/25';
+      pillEl.textContent = 'Sẵn sàng';
+      pillEl.className = 'live-score-pill score-neutral';
+      return;
+    }
+
+    const totalDelf = evaluatedTurns.reduce((sum, t) => sum + (t.turnEval.delfEquivalent != null ? t.turnEval.delfEquivalent : (t.turnEval.score * 5)), 0);
+    const avgDelf = +(totalDelf / evaluatedTurns.length).toFixed(1);
+
+    valEl.textContent = `${avgDelf}/25`;
+
+    if (avgDelf >= 21.0) {
+      pillEl.textContent = 'Xuất sắc (B1+)';
+      pillEl.className = 'live-score-pill score-perfect';
+    } else if (avgDelf >= 16.0) {
+      pillEl.textContent = 'Đạt chuẩn (B1)';
+      pillEl.className = 'live-score-pill score-good';
+    } else if (avgDelf >= 10.0) {
+      pillEl.textContent = 'Khá (A2+)';
+      pillEl.className = 'live-score-pill score-medium';
+    } else {
+      pillEl.textContent = avgDelf === 0 ? 'Tiếng Việt (0đ)' : 'Cần cố gắng';
+      pillEl.className = 'live-score-pill score-low';
+    }
   },
 
   /* ================= Interactive Word Pronunciation Practice & Tester ================= */

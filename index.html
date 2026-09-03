@@ -42,6 +42,12 @@
       </div>
 
       <div class="header-controls">
+        <!-- OmniRoute Gateway Status Indicator -->
+        <div class="gateway-status-badge" id="header-gateway-status" title="Trạng thái kết nối OmniRoute AI Gateway">
+          <span class="gateway-status-dot" id="header-gateway-dot"></span>
+          <span class="gateway-status-label" id="header-gateway-text">OmniRoute Online</span>
+        </div>
+
         <!-- Profile Switcher Badge Button -->
         <button class="profile-badge-btn" id="btn-profile-badge" title="Chuyển đổi hoặc tạo hồ sơ học viên mới">
           <span class="profile-avatar-circle" id="header-avatar-slot"></span>
@@ -114,8 +120,14 @@
             </button>
           </div>
           <div class="chat-top-actions">
+            <div class="live-score-badge" id="live-cumulative-score-meter" title="Đánh giá & Chấm điểm tức thì theo từng câu hội thoại">
+              <span class="live-score-icon">⚡</span>
+              <span class="live-score-label">DELF:</span>
+              <span class="live-score-val" id="live-score-val">--/25</span>
+              <span class="live-score-pill score-neutral" id="live-score-pill">Sẵn sàng</span>
+            </div>
             <button class="btn-chat-action btn-action-primary" id="btn-evaluate-speaking" title="Chấm điểm DELF B1 theo chuẩn France Éducation">
-              <span class="btn-icon-slot" data-icon="award"></span> Chấm điểm DELF
+              <span class="btn-icon-slot" data-icon="award"></span> Barem DELF
             </button>
             <button class="btn-chat-action" id="btn-toggle-atelier-phonetique" title="Mở Xưởng Ngữ Âm IPA">
               <span class="btn-icon-slot" data-icon="sparkles"></span> Xưởng IPA

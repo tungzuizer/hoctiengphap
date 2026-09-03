@@ -234,6 +234,54 @@ async function runTests() {
   assert.ok(synthesized.errors.some(e => e.category === 'vocab'), 'Có phân loại lỗi Từ vựng');
   console.log('  ✅ Diagnostic Hub: Tự động tổng hợp lỗi theo 4 nhóm, tạo thẻ so sánh ❌/✅ và lộ trình 3 bước hoàn chỉnh.');
 
+  // Test 7: Real-Time Turn-by-Turn Assessment & Live Cumulative DELF Score Meter
+  console.log('\n7. Kiểm tra Đánh giá & Chấm điểm tức thì trong từng lượt trò chuyện (Real-Time Turn-by-Turn Assessment):');
+
+  // 7.1 Parse explicit turn evaluation from AI output
+  const rawAIResponse = `
+Très bien ! C'est une excellente idée de visiter le musée du Louvre.
+Nhận xét: Câu văn lưu loát, chia đúng thì hiện tại.
+Phát âm gợi ý:
+- **musée** (/my.ze/) : Âm u chu tròn môi.
+
+Đánh giá câu:
+- Điểm câu: 4.5/5.0
+- Xếp loại: Rất tốt (DELF 22.5/25)
+- Ngữ pháp: Cấu trúc câu chuẩn xác, dùng đúng giới từ 'du Louvre'
+- Từ vựng: Vốn từ phù hợp trình độ B1
+  `;
+  const parsedEval = AIService.parseTurnEvaluation(rawAIResponse, 'Je voudrais visiter le musée du Louvre.');
+  assert.ok(parsedEval, 'Phải parse được khối đánh giá tức thì');
+  assert.strictEqual(parsedEval.score, 4.5, 'Điểm số theo thang 5.0 phải là 4.5');
+  assert.strictEqual(parsedEval.delfEquivalent, 22.5, 'Điểm quy đổi DELF phải là 22.5/25');
+  assert.strictEqual(parsedEval.badgeClass, 'score-perfect', '4.5 điểm phải thuộc phân loại score-perfect');
+  assert.strictEqual(parsedEval.stars, '⭐⭐⭐⭐⭐', '4.5 điểm phải đạt 5 sao');
+  assert.ok(parsedEval.grammarNote.includes('Cấu trúc câu chuẩn xác'), 'Ghi nhận đúng nhận xét ngữ pháp');
+  assert.ok(parsedEval.lexiqueNote.includes('Vốn từ phù hợp'), 'Ghi nhận đúng nhận xét từ vựng');
+
+  // 7.2 Parse Vietnamese utterance evaluation (Zero DELF score policy)
+  const vnEval = AIService.parseTurnEvaluation('Câu trả lời mẫu...', 'tôi muốn ai vừa trò chuyện với tôi và vừa đánh giá');
+  assert.strictEqual(vnEval.score, 0.0, 'Nói tiếng Việt phải bị 0.0/5.0 điểm');
+  assert.strictEqual(vnEval.delfEquivalent, 0.0, 'Nói tiếng Việt quy đổi DELF 0.0/25');
+  assert.strictEqual(vnEval.badgeClass, 'score-low', 'Tiếng Việt xếp loại score-low');
+  assert.ok(vnEval.grammarNote.includes('Chưa sử dụng tiếng Pháp'), 'Ghi chú quy chế thi DELF');
+
+  // 7.3 Fallback parsing for general French sentence
+  const fallbackEval = AIService.parseTurnEvaluation('Phản hồi không có khối đánh giá', 'Je mange une pomme.');
+  assert.ok(fallbackEval.score >= 3.5, 'Fallback cho câu tiếng Pháp hợp lệ có điểm chuẩn');
+  assert.ok(fallbackEval.delfEquivalent >= 17.5, 'Fallback quy đổi DELF tương ứng');
+
+  // 7.4 chatWithTutor integrated turn evaluation
+  const turnReply = await AIService.chatWithTutor('Bonjour, comment allez-vous ?', [], 'B1');
+  assert.ok(turnReply.turnEval, 'chatWithTutor phải trả về đối tượng turnEval');
+  assert.ok(typeof turnReply.turnEval.score === 'number', 'turnEval có trường score là số');
+  assert.ok(typeof turnReply.turnEval.delfEquivalent === 'number', 'turnEval có trường delfEquivalent là số');
+  assert.ok(turnReply.turnEval.badge, 'turnEval có badge xếp loại');
+  assert.ok(turnReply.turnEval.stars, 'turnEval có đánh giá sao');
+  assert.ok(turnReply.turnEvalRaw, 'chatWithTutor lưu lại raw evaluation text');
+
+  console.log('  ✅ Real-Time Assessment: Chấm điểm vi mô /5.0, quy đổi DELF /25, gắn badge năng lực và nhận xét tức thì từng câu.');
+
   console.log('\n✨ TẤT CẢ CÁC BÀI KIỂM THỬ ĐỀU ĐÃ ĐẠT (100% PASS)!');
 }
 

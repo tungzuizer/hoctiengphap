@@ -29,8 +29,8 @@ const App = {
     if (window.SeedBankModule) window.SeedBankModule.init();
     if (window.ProgressModule) window.ProgressModule.init();
 
-    // 6. Check if initial user needs to configure API Key
-    this.checkInitialConfig();
+    // 6. Check OmniRoute Gateway connection status
+    this.checkGatewayStatus();
   },
 
   renderStaticIcons() {
@@ -383,6 +383,31 @@ const App = {
       this.renderProfileList();
       if (window.SpeakingModule) window.SpeakingModule.loadHistory();
       if (window.ProgressModule) window.ProgressModule.render();
+    }
+  },
+
+  async checkGatewayStatus() {
+    const dotEl = document.getElementById('header-gateway-dot');
+    const textEl = document.getElementById('header-gateway-text');
+    const badgeEl = document.getElementById('header-gateway-status');
+    if (!dotEl || !textEl) return;
+
+    if (window.AIService && typeof window.AIService.checkGatewayStatus === 'function') {
+      try {
+        const result = await window.AIService.checkGatewayStatus();
+        if (result.connected) {
+          dotEl.className = 'gateway-status-dot';
+          textEl.textContent = 'OmniRoute AI';
+          if (badgeEl) badgeEl.title = `Đã kết nối OmniRoute (${result.data?.defaultModel || 'gemini-3.7-flash'})`;
+        } else {
+          dotEl.className = 'gateway-status-dot offline';
+          textEl.textContent = 'Demo Mode (Offline)';
+          if (badgeEl) badgeEl.title = 'Chưa kết nối server backend. Hãy mở terminal và chạy: npm start hoặc node server.js';
+        }
+      } catch (e) {
+        dotEl.className = 'gateway-status-dot offline';
+        textEl.textContent = 'Demo Mode';
+      }
     }
   },
 

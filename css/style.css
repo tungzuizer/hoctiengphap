@@ -316,6 +316,42 @@ body {
   gap: 0.6rem;
 }
 
+/* ================= Gateway Status Pill ================= */
+.gateway-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--card-solid);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 0.78rem;
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition-fast);
+}
+
+.gateway-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  animation: pulseDot 2.2s infinite ease-in-out;
+}
+
+.gateway-status-dot.offline {
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+  animation: none;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}
+
 /* ================= iOS Capsule Profile Button ================= */
 .profile-badge-btn {
   display: inline-flex;
@@ -686,6 +722,80 @@ body {
   align-items: center;
   gap: 0.45rem;
   flex-shrink: 0;
+}
+
+/* Live Cumulative Proficiency Score Meter */
+.live-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--card-solid);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition-fast);
+}
+
+.live-score-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.live-score-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.live-score-val {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+}
+
+.live-score-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  line-height: 1.2;
+  transition: all var(--transition-fast);
+}
+
+.score-neutral {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+.score-perfect {
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.score-good {
+  background: rgba(0, 122, 255, 0.14);
+  color: #007aff;
+  border: 1px solid rgba(0, 122, 255, 0.35);
+}
+
+.score-medium {
+  background: rgba(245, 158, 11, 0.14);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.score-low {
+  background: rgba(239, 68, 68, 0.14);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
 .btn-chat-action {
@@ -1230,6 +1340,116 @@ body {
 .btn-user-listen:hover {
   background: rgba(255, 255, 255, 0.35);
   transform: scale(1.02);
+}
+
+/* ================= Turn-by-Turn Real-Time Assessment Card ================= */
+.turn-eval-card {
+  margin-top: 0.75rem;
+  padding: 0.85rem 1.05rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(168, 85, 247, 0.05));
+  border: 1.5px solid rgba(99, 102, 241, 0.22);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  animation: messageSlideIn 0.25s var(--ease-out);
+}
+
+.turn-eval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px dashed rgba(99, 102, 241, 0.2);
+}
+
+.turn-eval-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.turn-eval-icon {
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+}
+
+.turn-eval-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.turn-eval-stars {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+
+.turn-eval-score-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.turn-eval-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-pill);
+}
+
+.turn-eval-score {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.turn-eval-delf {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.turn-eval-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.turn-eval-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.eval-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+.eval-tag-grammar {
+  background: rgba(99, 102, 241, 0.14);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.eval-tag-lexique {
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.eval-text {
+  color: var(--text-main);
 }
 
 /* ================= French Phonetics & Pronunciation Diagnostic Cards ================= */
@@ -3263,7 +3483,35 @@ body {
   }
 
   .chat-top-actions {
-    justify-content: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .live-score-badge {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.74rem;
+    gap: 0.25rem;
+  }
+
+  .live-score-val {
+    font-size: 0.82rem;
+  }
+
+  .live-score-pill {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.68rem;
+  }
+
+  .turn-eval-card {
+    padding: 0.75rem 0.85rem;
+    gap: 0.45rem;
+  }
+
+  .turn-eval-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
   }
 
   .chat-dock-container {
