@@ -17,41 +17,39 @@ const AIService = {
     const baseUrl = (config?.baseUrl || (window.CONFIG ? window.CONFIG.DEFAULT_OMNIROUTE_BASE_URL : 'http://localhost:20128/v1')).replace(/\/+$/, '');
     const model = config?.model || (window.CONFIG ? window.CONFIG.DEFAULT_MODEL : 'antigravity/gemini-3.7-flash-tiered');
 
-    // Strategy 1: Check if running on Web Server with backend proxy (/api/ai or http://localhost:3000/api/ai)
-    // The server injects the API key from .env so frontend remains 100% secret & secure
-    if (!apiKey) {
-      const endpointsToTry = ['/api/ai', 'http://localhost:3000/api/ai'];
-      for (const endpoint of endpointsToTry) {
-        try {
-          const proxyRes = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemPrompt,
-              messages,
-              temperature,
-              jsonMode,
-              model,
-              profileConfig: config ? { model: config.model, level: config.level } : null
-            })
-          });
+    // Strategy 1: Always attempt backend proxy first (/api/ai or http://localhost:3000/api/ai)
+    // The server injects the API key & configured model from environment so frontend stays secure & up-to-date
+    const endpointsToTry = ['/api/ai', 'http://localhost:3000/api/ai'];
+    for (const endpoint of endpointsToTry) {
+      try {
+        const proxyRes = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemPrompt,
+            messages,
+            temperature,
+            jsonMode,
+            model: (config?.model && !config.model.includes('antigravity') && !config.model.includes('claude')) ? config.model : undefined,
+            profileConfig: config ? { level: config.level } : null
+          })
+        });
 
-          if (proxyRes.ok) {
-            const data = await proxyRes.json();
-            if (data.success && data.content) {
-              return data.content;
-            } else if (data.error) {
-              throw new Error(data.error);
-            }
+        if (proxyRes.ok) {
+          const data = await proxyRes.json();
+          if (data.success && data.content) {
+            return data.content;
+          } else if (data.error) {
+            console.warn('[AIService] Backend proxy reported error:', data.error);
           }
-        } catch (proxyErr) {
-          // Continue to next endpoint attempt
         }
+      } catch (proxyErr) {
+        // Continue to next endpoint attempt
       }
     }
 
-    // Strategy 2: Direct Client Request (if user supplied an API key in Profile Settings)
-    if (apiKey) {
+    // Strategy 2: Direct Client Request (if user supplied a custom remote API key and proxy is unavailable)
+    if (apiKey && !baseUrl.includes('localhost')) {
       try {
         if (provider === 'anthropic' && baseUrl.includes('anthropic.com')) {
           return await this.callAnthropicDirect({ baseUrl, apiKey, model, systemPrompt, messages, temperature, jsonMode });
@@ -61,12 +59,11 @@ const AIService = {
         }
       } catch (err) {
         console.error('API Request Failed:', err);
-        throw new Error(`Lỗi kết nối AI (${provider}): ${err.message || 'Kiểm tra lại API Key hoặc Endpoint Base URL'}`);
       }
     }
 
     // Strategy 3: Mock fallback for offline or unconfigured instances
-    console.warn('No API key provided and proxy unavailable. Falling back to Mock Demo Mode.');
+    console.warn('Backend proxy unavailable and direct API failed. Falling back to Mock Demo Mode.');
     return this.mockResponse({ systemPrompt, messages, jsonMode });
   },
 
@@ -294,33 +291,33 @@ QUY TẮC BẮT BUỘC:
     let phoneticsRaw = '';
     let turnEvalRaw = '';
 
+    // Clean helper
+    const cleanSegment = (s) => (s || '').replace(/^\s*(?:[*#\-_]{2,}\s*)+/g, '').replace(/(?:\s*[*#\-_]{2,})+\s*$/g, '').trim();
+
     // 1. Split Turn Evaluation (if exists in response)
-    const splitEval = rawResponse.match(/\n\s*Đánh\s*giá\s*(?:câu|lượt\s*nói)\s*:\s*/i) || rawResponse.match(/Đánh\s*giá\s*(?:câu|lượt\s*nói)\s*:\s*/i);
+    const evalMatch = rawResponse.match(/(?:^|\n)\s*(?:#{1,4}\s*)?\*{0,3}Đánh\s*giá\s*(?:câu|lượt\s*nói)?\*{0,3}\s*:\s*/i);
     let textBeforeEval = rawResponse;
-    if (splitEval) {
-      const eIdx = splitEval.index;
-      textBeforeEval = rawResponse.substring(0, eIdx).trim();
-      turnEvalRaw = rawResponse.substring(eIdx + splitEval[0].length).trim();
+    if (evalMatch) {
+      textBeforeEval = rawResponse.substring(0, evalMatch.index);
+      turnEvalRaw = cleanSegment(rawResponse.substring(evalMatch.index + evalMatch[0].length));
     }
 
     // 2. Split Phonetics
-    const splitPhonetics = textBeforeEval.match(/\n\s*Phát âm\s*(?:&|và)\s*Ngữ âm\s*:\s*/i) || textBeforeEval.match(/Phát âm\s*(?:&|và)\s*Ngữ âm\s*:\s*/i);
+    const phoneticsMatch = textBeforeEval.match(/(?:^|\n)\s*(?:#{1,4}\s*)?\*{0,3}Phát\s*âm\s*(?:&|và)?\s*Ngữ\s*âm\*{0,3}\s*:\s*/i);
     let textBeforePhonetics = textBeforeEval;
-
-    if (splitPhonetics) {
-      const pIdx = splitPhonetics.index;
-      textBeforePhonetics = textBeforeEval.substring(0, pIdx).trim();
-      phoneticsRaw = textBeforeEval.substring(pIdx + splitPhonetics[0].length).trim();
+    if (phoneticsMatch) {
+      textBeforePhonetics = textBeforeEval.substring(0, phoneticsMatch.index);
+      phoneticsRaw = cleanSegment(textBeforeEval.substring(phoneticsMatch.index + phoneticsMatch[0].length));
     }
 
     // 3. Split Vietnamese Feedback
-    const splitFeedback = textBeforePhonetics.match(/\n\s*Nhận xét\s*:\s*/i) || textBeforePhonetics.match(/Nhận xét\s*:\s*/i);
-    if (splitFeedback) {
-      const fIdx = splitFeedback.index;
-      frenchReply = textBeforePhonetics.substring(0, fIdx).trim();
-      feedbackVi = textBeforePhonetics.substring(fIdx + splitFeedback[0].length).trim();
+    const feedbackMatch = textBeforePhonetics.match(/(?:^|\n)\s*(?:#{1,4}\s*)?\*{0,3}(?:Nhận\s*xét|Lời\s*khuyên|Góp\s*ý|Nhận\s*xét\s*ngữ\s*pháp)\*{0,3}\s*:\s*/i)
+      || textBeforePhonetics.match(/(?:^|\n)\s*\*{3,}\s*\n/);
+    if (feedbackMatch) {
+      frenchReply = cleanSegment(textBeforePhonetics.substring(0, feedbackMatch.index));
+      feedbackVi = cleanSegment(textBeforePhonetics.substring(feedbackMatch.index + feedbackMatch[0].length));
     } else {
-      frenchReply = textBeforePhonetics.trim();
+      frenchReply = cleanSegment(textBeforePhonetics);
     }
 
     // Parse structured phonetic items and turn evaluation
@@ -429,15 +426,33 @@ QUY TẮC BẮT BUỘC:
       const cleanLine = line.replace(/^[-*•\d.]+\s*/, '').trim();
       if (!cleanLine) return;
 
-      // Match patterns like: "beaucoup (/boku/): Chú ý..." or "les amis /lez‿ami/ : Nối âm..."
-      const match = cleanLine.match(/^(?:\*\*)?([^(/:*]+)(?:\*\*)?\s*(?:\((?:\/)?([^)/]+)(?:\/)?\)|\/(.+?)\/)\s*:\s*(.*)$/i);
-      if (match) {
-        const word = (match[1] || '').trim().replace(/\*\*/g, '');
-        const ipa = (match[2] || match[3] || '').trim();
-        const tip = (match[4] || '').trim();
+      const colonIdx = cleanLine.indexOf(':');
+      if (colonIdx !== -1) {
+        const header = cleanLine.substring(0, colonIdx).trim();
+        const tip = cleanLine.substring(colonIdx + 1).trim();
+
+        let word = header;
+        let ipa = '';
+
+        const parenMatch = header.match(/\((.*?)\)/);
+        const slashMatch = header.match(/\/([^\/]+)\//);
+
+        if (parenMatch) {
+          ipa = parenMatch[1].trim();
+          word = header.replace(/\(.*?\)/, '').trim();
+        } else if (slashMatch) {
+          ipa = slashMatch[1].trim();
+          word = header.replace(/\/([^\/]+)\//, '').trim();
+        }
+
+        word = word.replace(/[*_~`]/g, '').trim();
+        if (ipa && !ipa.startsWith('/') && !ipa.includes('(')) {
+          ipa = `/${ipa}/`;
+        }
+
         items.push({
           word,
-          ipa: ipa.startsWith('/') ? ipa : `/${ipa}/`,
+          ipa,
           tip
         });
       } else {
@@ -670,11 +685,13 @@ Hãy trả về DUY NHẤT một JSON theo cấu trúc sau (không kèm markdown
       return item;
     });
 
-    const bottlenecks = parsed.bottlenecks || (parsed.primary_weakness ? [parsed.primary_weakness] : [
-      'Phân biệt Passé Composé & Imparfait',
-      'Khẩu hình 3 âm mũi [ɑ̃], [ɔ̃], [ɛ̃]',
-      'Sử dụng liên từ nối ý B1'
-    ]);
+    const bottlenecks = (Array.isArray(parsed.bottlenecks) && parsed.bottlenecks.length > 0)
+      ? parsed.bottlenecks
+      : [
+          parsed.primary_weakness || 'Phân biệt Passé Composé & Imparfait',
+          'Khẩu hình các âm mũi [ɑ̃], [ɔ̃], [ɛ̃]',
+          'Sử dụng liên từ nối ý trình độ B1'
+        ].filter(Boolean);
 
     return {
       summary: parsed.summary || 'Chẩn đoán học tập đã hoàn tất.',
@@ -736,7 +753,11 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
       jsonMode: true
     });
 
-    return this.cleanAndParseJSON(rawResponse);
+    const parsed = this.cleanAndParseJSON(rawResponse);
+    if (parsed && seedText && seedText.trim()) {
+      parsed.passage = seedText.trim();
+    }
+    return parsed;
   },
 
   // 4. Module Luyện Nghe: Sinh đoạn hội thoại/bài phát thanh + trắc nghiệm
@@ -788,7 +809,11 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
       jsonMode: true
     });
 
-    return this.cleanAndParseJSON(rawResponse);
+    const parsed = this.cleanAndParseJSON(rawResponse);
+    if (parsed && seedText && seedText.trim()) {
+      parsed.passage = seedText.trim();
+    }
+    return parsed;
   },
 
   // Realistic Simulation / Demo Mode for testing when API key is not entered

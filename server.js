@@ -118,9 +118,16 @@ const server = http.createServer(async (req, res) => {
         const { systemPrompt, messages = [], temperature = 0.7, jsonMode = false, model, profileConfig } = body;
 
         // Resolve credentials (server-side priority or fallback)
-        const targetBaseUrl = (profileConfig?.baseUrl || OMNIROUTE_BASE_URL).replace(/\/+$/, '');
+        const targetBaseUrl = (profileConfig?.baseUrl && !profileConfig.baseUrl.includes('localhost') ? profileConfig.baseUrl : OMNIROUTE_BASE_URL).replace(/\/+$/, '');
         const targetApiKey = profileConfig?.apiKey?.trim() || OMNIROUTE_API_KEY;
-        const targetModel = model || profileConfig?.model || DEFAULT_MODEL;
+        let targetModel = model || profileConfig?.model || DEFAULT_MODEL;
+
+        // If target is Google Gemini endpoint, ensure model is compatible with Google AI Studio
+        if (targetBaseUrl.includes('googleapis.com')) {
+          if (targetModel.includes('antigravity') || targetModel.includes('claude') || targetModel.includes('gpt-') || targetModel.includes('2.0-flash') || targetModel.includes('2.5-flash')) {
+            targetModel = (DEFAULT_MODEL && !DEFAULT_MODEL.includes('antigravity') && !DEFAULT_MODEL.includes('claude')) ? DEFAULT_MODEL : 'gemini-3.5-flash';
+          }
+        }
 
         if (!targetApiKey) {
           return sendJson(res, 400, {

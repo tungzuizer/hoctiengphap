@@ -123,6 +123,7 @@ const StateManager = {
     localStorage.removeItem(`profile_${id}_config`);
     localStorage.removeItem(`profile_${id}_progress`);
     localStorage.removeItem(`profile_${id}_history`);
+    localStorage.removeItem(`profile_${id}_speaking_mode`);
 
     // If active profile was deleted, switch to the first remaining profile
     if (this.getActiveProfileId() === id) {

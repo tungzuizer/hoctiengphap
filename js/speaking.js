@@ -58,6 +58,8 @@ const SpeakingModule = {
   },
 
   loadHistory() {
+    const currentMode = window.StateManager ? window.StateManager.getSpeakingMode() : 'friend';
+    this.updateSpeakingModeUI(currentMode);
     this.conversation = window.StateManager.getConversationHistory();
     this.renderConversation();
   },
