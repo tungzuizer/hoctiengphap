@@ -120,6 +120,18 @@
             </button>
           </div>
           <div class="chat-top-actions">
+            <!-- Segmented Mode Switcher: Friend Mode (No Score, Gentle Correction) vs Exam Mode (DELF Scoring) -->
+            <div class="speaking-mode-segmented-control" id="speaking-mode-toggle" role="radiogroup" aria-label="Chế độ luyện nói">
+              <button type="button" class="mode-pill-btn active" data-mode="friend" id="btn-mode-friend" role="radio" aria-checked="true" title="Chế độ Bạn Bè: Trò chuyện gần gũi, không chấm điểm, sửa lỗi ân cần">
+                <span class="mode-pill-icon">💬</span>
+                <span class="mode-pill-text">Bạn bè</span>
+              </button>
+              <button type="button" class="mode-pill-btn" data-mode="exam" id="btn-mode-exam" role="radio" aria-checked="false" title="Chế độ Luyện Thi: Giám khảo DELF B1, chấm điểm 6 tiêu chí & đánh giá từng câu">
+                <span class="mode-pill-icon">🏆</span>
+                <span class="mode-pill-text">Luyện thi</span>
+              </button>
+            </div>
+
             <div class="live-score-badge" id="live-cumulative-score-meter" title="Đánh giá & Chấm điểm tức thì theo từng câu hội thoại">
               <span class="live-score-icon">⚡</span>
               <span class="live-score-label">DELF:</span>

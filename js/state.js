@@ -1,6 +1,11 @@
 /**
  * StateManager - Multi-profile & LocalStorage State Management
  * Supports isolated storage for each user profile + shared seed bank
+ *
+ * 1. Importers/Callers: js/app.js, js/speaking.js, js/reading.js, js/listening.js, js/seed-bank.js, js/progress.js, test/verify.js
+ * 2. Affected API: getSpeakingMode(), setSpeakingMode(mode), getProfiles(), getActiveProfile(), etc.
+ * 3. Data Schemas: mode ('friend' | 'exam'), profile object, config object
+ * 4. User's Verbatim Instruction: "thêm chức năng tắt chấm điểm buổi luyện và tôi cần ai nói chuyên với tôi nhưu 1 người bạn và sửa lỗi cho tôi"
  */
 
 const StateManager = {
@@ -206,6 +211,30 @@ const StateManager = {
       console.error('Error saving progress record', e);
     }
     return newRecord;
+  },
+
+  // Speaking Practice Mode: 'friend' (Mode Bạn bè - không chấm điểm, sửa lỗi ân cần) | 'exam' (Mode Luyện thi DELF - có chấm điểm)
+  getSpeakingMode(profileId = null) {
+    const id = profileId || this.getActiveProfileId();
+    if (!id) return 'friend';
+    try {
+      const mode = localStorage.getItem(`profile_${id}_speaking_mode`);
+      return mode === 'exam' ? 'exam' : 'friend';
+    } catch (e) {
+      return 'friend';
+    }
+  },
+
+  setSpeakingMode(mode, profileId = null) {
+    const id = profileId || this.getActiveProfileId();
+    if (!id) return 'friend';
+    const cleanMode = mode === 'exam' ? 'exam' : 'friend';
+    try {
+      localStorage.setItem(`profile_${id}_speaking_mode`, cleanMode);
+    } catch (e) {
+      console.error('Error saving speaking mode', e);
+    }
+    return cleanMode;
   },
 
   // Conversation History per profile (Speaking session)

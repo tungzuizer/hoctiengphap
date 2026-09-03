@@ -1,6 +1,11 @@
 /**
  * AIService - OmniRoute Gateway & Direct AI Client
  * Handles AI chat, reading/listening comprehension generation & DELF speaking evaluation
+ *
+ * 1. Importers/Callers: js/speaking.js, js/reading.js, js/listening.js, js/progress.js, test/verify.js
+ * 2. Affected API: AIService.chatWithTutor(userFrenchText, conversationHistory, level, mode), AIService.request(), etc.
+ * 3. Data Schemas: returns { frenchReply, feedbackVi, phoneticsRaw, phonetics, turnEvalRaw, turnEval }
+ * 4. User's Verbatim Instruction: "thêm chức năng tắt chấm điểm buổi luyện và tôi cần ai nói chuyên với tôi nhưu 1 người bạn và sửa lỗi cho tôi"
  */
 
 const AIService = {
@@ -192,9 +197,47 @@ const AIService = {
     }
   },
 
-  // 1. Module Luyện Nói: Trò chuyện với giáo viên bản ngữ + Nhận xét lỗi + Sửa phát âm + Đánh giá & Chấm điểm tức thì
-  async chatWithTutor(userFrenchText, conversationHistory = [], level = 'B1') {
-    const systemPrompt = `Bạn là giáo viên tiếng Pháp bản ngữ kiêm chuyên gia sư phạm & giám khảo đánh giá năng lực hội thoại (DELF B1) cho học viên Việt Nam trình độ [${level}].
+  // 1. Module Luyện Nói: Trò chuyện (Mode Bạn Bè Thân Mật / Mode Giám Khảo DELF) + Sửa lỗi ân cần + Ngữ âm IPA
+  async chatWithTutor(userFrenchText, conversationHistory = [], level = 'B1', mode = null) {
+    const activeMode = mode || (window.StateManager?.getSpeakingMode ? window.StateManager.getSpeakingMode() : 'friend');
+    const profile = window.StateManager?.getActiveProfile ? window.StateManager.getActiveProfile() : null;
+    const learnerName = profile?.name || 'Trang';
+
+    let systemPrompt = '';
+
+    if (activeMode === 'friend') {
+      // MODE BẠN BÈ (MODE AMI FRANCOPHONE - KHÔNG CHẤM ĐIỂM, SỬA LỖI ÂN CẦN)
+      systemPrompt = `Bạn là một người bạn Pháp thân thiết, ấm áp, cởi mở và nhiệt tình (un ami francophone bienveillant et chaleureux) đang trò chuyện cà phê thân mật với bạn của mình tên là [${learnerName}] (trình độ tiếng Pháp [${level}]).
+
+MỤC TIÊU CỐT LÕI:
+Tạo cảm giác thoải mái, gần gũi, tự nhiên như hai người bạn thân cùng nhau trò chuyện chia sẻ cuộc sống thường ngày bằng tiếng Pháp, KHÔNG TẠO ÁP LỰC ĐIỂM SỐ, đồng thời ân cần sửa lỗi ngữ pháp & phát âm để bạn mình tiến bộ một cách nhẹ nhàng.
+
+QUY TẮC BẮT BUỘC:
+1. PHONG CÁCH TRÒ CHUYỆN BẠN BÈ THÂN MẬT (MODE AMI):
+   - Xưng hô thân mật, ấm áp (dùng "tu / toi / on / nous" trong tiếng Pháp và xưng hô bạn bè gần gũi như người bạn Pháp đồng trang lứa).
+   - Hãy chủ động bắt nhịp theo ĐÚNG CHỦ ĐỀ bạn mình vừa nói (ví dụ: ăn uống/ẩm thực, cảm xúc, công việc, học tập, du lịch, thói quen sinh hoạt, sở thích, kế hoạch...).
+   - Lắng nghe chân thành, thể hiện cảm xúc đồng cảm, chia sẻ câu chuyện ngắn của chính bạn, và đặt thêm 1 câu hỏi mở thân tình để duy trì cuộc trò chuyện vui vẻ.
+   - Luôn trả lời bằng TIẾNG PHÁP một cách tự nhiên, sinh động, chuẩn văn phong đời thường của người Pháp trình độ [${level}].
+
+2. SỬA LỖI ÂN CẦN & CHÍNH XÁC (CORRECTION BIENVEILLANTE):
+   - Sau câu trả lời tiếng Pháp, hãy xuống 2 dòng, ghi chính xác "Nhận xét:" rồi chia sẻ ngắn gọn bằng TIẾNG VIỆT với giọng điệu người bạn chân thành.
+   - CHỈ nhận xét và gợi ý dựa trên các từ/cấu trúc THỰC SỰ XUẤT HIỆN trong câu bạn mình vừa nói (tuyệt đối không gợi ý sang từ vựng hay hoạt động không liên quan).
+   - Nếu bạn mình nói đúng: Khen ngợi và chia sẻ cách diễn đạt tự nhiên mà người Pháp bản xứ rất hay dùng.
+   - Nếu có lỗi sai (chia sai thì, sai mạo từ, sai giống/số, diễn đạt chưa tự nhiên): Nhẹ nhàng chỉ ra và gợi ý câu nói mượt mà hơn ("Chỗ này tụi mình hay nói là... sẽ chuẩn người Pháp hơn nè!").
+   - Nếu bạn mình gõ tiếng Việt: Thân ái dịch sang câu tiếng Pháp tự nhiên nhất và hướng dẫn để bạn mình tự tin luyện nói theo.
+
+3. HƯỚNG DẪN PHÁT ÂM & NGỮ ÂM (PHONÉTIQUE) DỄ THƯƠNG:
+   - Xuống tiếp 2 dòng, ghi chính xác "Phát âm & Ngữ âm:".
+   - Trích xuất 1-3 từ/cụm từ THỰC SỰ CÓ TRONG CÂU của bạn mình để hướng dẫn phát âm IPA, mẹo khẩu hình miệng và các cạm bẫy hay gặp (âm câm lettre muette, âm mũi nasale [ɑ̃]/[ɔ̃]/[ɛ̃], âm [y] vs [u], âm R rung họng [ʁ], nối âm liaison).
+   - Lời dặn phát âm viết với giọng điệu người bạn thân mật, dễ hiểu.
+   Định dạng mỗi dòng phát âm:
+   - [Từ/Cụm từ trong câu] (/phiên âm IPA/): Lời khuyên phát âm & mẹo khẩu hình miệng.
+
+4. TUYỆT ĐỐI KHÔNG CHẤM ĐIỂM (PAS D'ÉVALUATION):
+   - Vì đây là Chế độ Bạn Bè trò chuyện tự do, TUYỆT ĐỐI KHÔNG tạo mục "Đánh giá câu:" hay đưa ra bất kỳ điểm số /5.0 hay /25 nào để bạn mình hoàn toàn thư giãn.`;
+    } else {
+      // MODE EXAMEN (CHẤM ĐIỂM DELF TỨC THÌ)
+      systemPrompt = `Bạn là giáo viên tiếng Pháp bản ngữ kiêm chuyên gia sư phạm & giám khảo đánh giá năng lực hội thoại (DELF B1) cho học viên Việt Nam trình độ [${level}].
 
 QUY TẮC BẮT BUỘC:
 1. ĐA DẠNG HÓA CHỦ ĐỀ & PHẢN HỒI THEO ĐÚNG NGỮ CẢNH HỌC VIÊN NÓI:
@@ -226,13 +269,14 @@ QUY TẮC BẮT BUỘC:
    - Dòng 2: "- Huy hiệu: [Xuất sắc (B1) | Rất tốt (B1) | Đạt chuẩn (A2+) | Cần lưu ý | Tiếng Việt (0.0/25)]".
    - Dòng 3: "- Ngữ pháp: [Nhận xét nhanh 1 dòng về ngữ pháp/thì/mạo từ]".
    - Dòng 4: "- Từ vựng: [Nhận xét nhanh 1 dòng về vốn từ và ngữ cảnh]".`;
+    }
 
     const messages = [];
     // Include last 6 turns for context
     const recentHistory = conversationHistory.slice(-6);
     recentHistory.forEach(item => {
       messages.push({ role: 'user', content: item.userText });
-      const assistantFullContent = `${item.frenchReply}\n\nNhận xét:\n${item.feedbackVi || ''}${item.phoneticsRaw ? `\n\nPhát âm & Ngữ âm:\n${item.phoneticsRaw}` : ''}${item.turnEvalRaw ? `\n\nĐánh giá câu:\n${item.turnEvalRaw}` : ''}`;
+      const assistantFullContent = `${item.frenchReply}\n\nNhận xét:\n${item.feedbackVi || ''}${item.phoneticsRaw ? `\n\nPhát âm & Ngữ âm:\n${item.phoneticsRaw}` : ''}${item.turnEvalRaw && activeMode === 'exam' ? `\n\nĐánh giá câu:\n${item.turnEvalRaw}` : ''}`;
       messages.push({ role: 'assistant', content: assistantFullContent });
     });
 
@@ -244,13 +288,13 @@ QUY TẮC BẮT BUỘC:
       temperature: 0.6
     });
 
-    // Parse the 4 parts: French reply, Vietnamese feedback, Phonetics feedback, and Turn Evaluation
+    // Parse components: French reply, Vietnamese feedback, Phonetics feedback, and Turn Evaluation (if in exam mode)
     let frenchReply = rawResponse;
     let feedbackVi = '';
     let phoneticsRaw = '';
     let turnEvalRaw = '';
 
-    // 1. Split Turn Evaluation
+    // 1. Split Turn Evaluation (if exists in response)
     const splitEval = rawResponse.match(/\n\s*Đánh\s*giá\s*(?:câu|lượt\s*nói)\s*:\s*/i) || rawResponse.match(/Đánh\s*giá\s*(?:câu|lượt\s*nói)\s*:\s*/i);
     let textBeforeEval = rawResponse;
     if (splitEval) {
@@ -281,15 +325,21 @@ QUY TẮC BẮT BUỘC:
 
     // Parse structured phonetic items and turn evaluation
     const parsedPhonetics = this.parsePhoneticsList(phoneticsRaw);
-    const turnEval = this.parseTurnEvaluation(turnEvalRaw, userFrenchText);
+    let turnEval = null;
+    if (activeMode === 'exam' && turnEvalRaw) {
+      turnEval = this.parseTurnEvaluation(turnEvalRaw, userFrenchText);
+    } else if (activeMode === 'exam') {
+      turnEval = this.parseTurnEvaluation('', userFrenchText);
+    }
 
     return {
       frenchReply: frenchReply || 'Très bien, continuons la conversation !',
-      feedbackVi: feedbackVi || 'Rất tốt! Câu nói của bạn tự nhiên và không mắc lỗi ngữ pháp đáng kể.',
+      feedbackVi: feedbackVi || 'Rất tốt! Câu nói của bạn tự nhiên và diễn đạt mạch lạc.',
       phoneticsRaw,
       phonetics: parsedPhonetics,
       turnEvalRaw,
-      turnEval
+      turnEval,
+      mode: activeMode
     };
   },
 
@@ -767,8 +817,10 @@ Trả về DUY NHẤT một JSON hợp lệ có cấu trúc:
     }
 
     // Default conversational response with comprehensive phonetics & tips
+    const isFriendMode = systemPrompt.includes('MODE BẠN BÈ') || systemPrompt.includes('người bạn Pháp thân thiết') || !systemPrompt.includes('giám khảo');
     const lastUserMsg = messages && messages.length > 0 ? (messages[messages.length - 1].content || '') : '';
-    return this._generateContextualTutorReply(lastUserMsg, 'B1');
+    const res = this._generateContextualTutorReply(lastUserMsg, 'B1');
+    return isFriendMode ? res.replace(/\n\s*Đánh\s*giá\s*câu\s*:[\s\S]*$/i, '').trim() : res;
   },
 
   // Intelligent Contextual Tutor Response Generator for Simulation & Offline Mode

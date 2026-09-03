@@ -271,16 +271,40 @@ Phát âm gợi ý:
   assert.ok(fallbackEval.score >= 3.5, 'Fallback cho câu tiếng Pháp hợp lệ có điểm chuẩn');
   assert.ok(fallbackEval.delfEquivalent >= 17.5, 'Fallback quy đổi DELF tương ứng');
 
-  // 7.4 chatWithTutor integrated turn evaluation
-  const turnReply = await AIService.chatWithTutor('Bonjour, comment allez-vous ?', [], 'B1');
-  assert.ok(turnReply.turnEval, 'chatWithTutor phải trả về đối tượng turnEval');
-  assert.ok(typeof turnReply.turnEval.score === 'number', 'turnEval có trường score là số');
-  assert.ok(typeof turnReply.turnEval.delfEquivalent === 'number', 'turnEval có trường delfEquivalent là số');
-  assert.ok(turnReply.turnEval.badge, 'turnEval có badge xếp loại');
-  assert.ok(turnReply.turnEval.stars, 'turnEval có đánh giá sao');
-  assert.ok(turnReply.turnEvalRaw, 'chatWithTutor lưu lại raw evaluation text');
+  // 7.4 chatWithTutor integrated turn evaluation in Exam Mode
+  const turnReplyExam = await AIService.chatWithTutor('Bonjour, comment allez-vous ?', [], 'B1', 'exam');
+  assert.strictEqual(turnReplyExam.mode, 'exam', 'Chế độ trả về là exam');
+  assert.ok(turnReplyExam.turnEval, 'chatWithTutor trong chế độ exam lời thoại phải trả về đối tượng turnEval');
+  assert.ok(typeof turnReplyExam.turnEval.score === 'number', 'turnEval có trường score là số');
+  assert.ok(typeof turnReplyExam.turnEval.delfEquivalent === 'number', 'turnEval có trường delfEquivalent là số');
+  assert.ok(turnReplyExam.turnEval.badge, 'turnEval có badge xếp loại');
+  assert.ok(turnReplyExam.turnEval.stars, 'turnEval có đánh giá sao');
+  assert.ok(turnReplyExam.turnEvalRaw, 'chatWithTutor lưu lại raw evaluation text');
+  console.log('  ✅ Real-Time Assessment (Exam Mode): Chấm điểm vi mô /5.0, quy đổi DELF /25, gắn badge năng lực và nhận xét tức thì từng câu.');
 
-  console.log('  ✅ Real-Time Assessment: Chấm điểm vi mô /5.0, quy đổi DELF /25, gắn badge năng lực và nhận xét tức thì từng câu.');
+  // Test 8: Chế độ Bạn Bè Thân Mật & Tắt Chấm Điểm (Friendly Companion Mode & Toggleable Scoring)
+  console.log('\n8. Kiểm tra Chế độ Bạn Bè Thân Mật & Bật/Tắt Chấm Điểm Luyện Nói (Friend Mode):');
+  // 8.1 StateManager mode storage
+  const defaultMode = StateManager.getSpeakingMode();
+  assert.strictEqual(defaultMode, 'friend', 'Mặc định chế độ luyện nói là Friend Mode (Bạn bè)');
+
+  StateManager.setSpeakingMode('exam');
+  assert.strictEqual(StateManager.getSpeakingMode(), 'exam', 'Chuyển sang chế độ Exam thành công');
+
+  StateManager.setSpeakingMode('friend');
+  assert.strictEqual(StateManager.getSpeakingMode(), 'friend', 'Chuyển lại về chế độ Friend thành công');
+
+  // 8.2 AI Chat in Friend Mode: TUYỆT ĐỐI KHÔNG CHẤM ĐIỂM
+  const turnReplyFriend = await AIService.chatWithTutor('Salut mon ami, tu as passé un bon week-end ?', [], 'B1', 'friend');
+  assert.strictEqual(turnReplyFriend.mode, 'friend', 'Chế độ hội thoại là friend');
+  assert.ok(turnReplyFriend.frenchReply, 'Có câu thoại tiếng Pháp thân mật');
+  assert.ok(turnReplyFriend.feedbackVi, 'Có nhận xét sửa lỗi ngữ pháp ân cần');
+  assert.ok(turnReplyFriend.phonetics, 'Có danh sách sửa phát âm IPA');
+  assert.strictEqual(turnReplyFriend.turnEval, null, 'Chế độ bạn bè TUYỆT ĐỐI KHÔNG có đối tượng turnEval (Không chấm điểm)');
+  assert.strictEqual(turnReplyFriend.turnEvalRaw, '', 'Chế độ bạn bè không chứa raw score evaluation');
+  assert.ok(!turnReplyFriend.feedbackVi.includes('/5.0') && !turnReplyFriend.feedbackVi.includes('/25'), 'Nhận xét trong chế độ bạn bè không chứa điểm số gây áp lực');
+
+  console.log('  ✅ Friend Companion Mode: Trò chuyện gần gũi, sửa lỗi ngữ pháp & phát âm ân cần, tắt hoàn toàn chấm điểm số.');
 
   console.log('\n✨ TẤT CẢ CÁC BÀI KIỂM THỬ ĐỀU ĐÃ ĐẠT (100% PASS)!');
 }

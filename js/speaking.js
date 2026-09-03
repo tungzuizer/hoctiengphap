@@ -12,10 +12,49 @@ const SpeakingModule = {
 
   init() {
     this.bindEvents();
+    this.initSpeakingModeSwitcher();
     this.loadHistory();
     this.renderTopics();
     this.renderAtelierPhonétique();
     this.initTopicsCarousel();
+  },
+
+  initSpeakingModeSwitcher() {
+    const currentMode = window.StateManager ? window.StateManager.getSpeakingMode() : 'friend';
+    this.updateSpeakingModeUI(currentMode);
+
+    const container = document.getElementById('speaking-mode-toggle');
+    if (container) {
+      container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.mode-pill-btn');
+        if (!btn) return;
+        const targetMode = btn.getAttribute('data-mode');
+        if (targetMode && (targetMode === 'friend' || targetMode === 'exam')) {
+          window.StateManager.setSpeakingMode(targetMode);
+          this.updateSpeakingModeUI(targetMode);
+          this.renderConversation();
+        }
+      });
+    }
+  },
+
+  updateSpeakingModeUI(mode) {
+    const friendBtn = document.getElementById('btn-mode-friend');
+    const examBtn = document.getElementById('btn-mode-exam');
+    if (friendBtn && examBtn) {
+      if (mode === 'exam') {
+        friendBtn.classList.remove('active');
+        friendBtn.setAttribute('aria-checked', 'false');
+        examBtn.classList.add('active');
+        examBtn.setAttribute('aria-checked', 'true');
+      } else {
+        friendBtn.classList.add('active');
+        friendBtn.setAttribute('aria-checked', 'true');
+        examBtn.classList.remove('active');
+        examBtn.setAttribute('aria-checked', 'false');
+      }
+    }
+    this.updateCumulativeScoreMeter();
   },
 
   loadHistory() {
@@ -153,6 +192,7 @@ const SpeakingModule = {
 
     const profile = window.StateManager.getActiveProfile();
     const level = profile ? profile.level : 'B1';
+    const activeMode = window.StateManager ? window.StateManager.getSpeakingMode() : 'friend';
 
     // Append user message immediately
     const tempId = 'turn_' + Date.now();
@@ -161,11 +201,12 @@ const SpeakingModule = {
       timestamp: new Date().toISOString(),
       userText: frenchText,
       frenchReply: '...',
-      feedbackVi: 'Đang phân tích ngữ pháp, từ vựng và ngữ âm phát âm...',
+      feedbackVi: activeMode === 'friend' ? 'Đang lắng nghe và tâm sự cùng bạn...' : 'Đang phân tích ngữ pháp, từ vựng và ngữ âm phát âm...',
       phoneticsRaw: '',
       phonetics: [],
       turnEvalRaw: '',
-      turnEval: null
+      turnEval: null,
+      mode: activeMode
     };
 
     this.conversation.push(newTurn);
@@ -177,7 +218,7 @@ const SpeakingModule = {
     if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
 
     try {
-      const response = await window.AIService.chatWithTutor(frenchText, this.conversation.slice(0, -1), level);
+      const response = await window.AIService.chatWithTutor(frenchText, this.conversation.slice(0, -1), level, activeMode);
 
       // Update turn with 4 components: French reply, grammar feedback, phonetics diagnostic, and real-time turn evaluation
       newTurn.frenchReply = response.frenchReply;
@@ -185,7 +226,8 @@ const SpeakingModule = {
       newTurn.phoneticsRaw = response.phoneticsRaw || '';
       newTurn.phonetics = response.phonetics || [];
       newTurn.turnEvalRaw = response.turnEvalRaw || '';
-      newTurn.turnEval = response.turnEval || null;
+      newTurn.turnEval = activeMode === 'exam' ? (response.turnEval || null) : null;
+      newTurn.mode = activeMode;
 
       // Save history
       window.StateManager.saveConversationHistory(this.conversation);
@@ -211,23 +253,29 @@ const SpeakingModule = {
     const container = document.getElementById('conversation-container');
     if (!container) return;
 
+    const activeMode = window.StateManager ? window.StateManager.getSpeakingMode() : 'friend';
+
     if (this.conversation.length === 0) {
+      const emptyTitle = activeMode === 'friend' ? 'Trò chuyện cùng bạn Pháp' : 'Phòng Luyện Nói DELF B1';
+      const emptyDesc = activeMode === 'friend'
+        ? 'Nhấn nút Micro hoặc gõ tiếng Pháp để tâm sự tự do với người bạn Pháp. Bạn sẽ được sửa lỗi ân cần mà không hề có áp lực điểm số.'
+        : 'Nhấn nút Micro và nói một câu tiếng Pháp (hoặc gõ phím) để bắt đầu luyện tập và nhận đánh giá tức thì theo chuẩn DELF B1.';
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon-wrap">
             ${window.Icons.get('mic', '', 28)}
           </div>
-          <h3>Chưa có hội thoại nào</h3>
-          <p>Nhấn nút Micro và nói một câu tiếng Pháp (hoặc gõ phím) để bắt đầu luyện tập với giáo viên bản ngữ.</p>
+          <h3>${emptyTitle}</h3>
+          <p>${emptyDesc}</p>
         </div>
       `;
       return;
     }
 
     container.innerHTML = this.conversation.map((turn, index) => {
-      // Build Turn-by-Turn Real-time Assessment Card
+      // Build Turn-by-Turn Real-time Assessment Card (ONLY in EXAM MODE)
       let turnEvalHTML = '';
-      if (turn.turnEval) {
+      if (activeMode === 'exam' && turn.turnEval) {
         const ev = turn.turnEval;
         turnEvalHTML = `
           <div class="turn-eval-card">
@@ -268,7 +316,7 @@ const SpeakingModule = {
           <div class="phonetics-diagnostic-card">
             <div class="phonetics-header">
               <span class="phonetics-badge-title">
-                ${window.Icons.get('sparkles', '', 14)} Chữa phát âm & Ngữ âm (Phonétique):
+                ${window.Icons.get('sparkles', '', 14)} ${activeMode === 'friend' ? 'Sửa phát âm chuẩn Paris cho bạn:' : 'Chữa phát âm & Ngữ âm (Phonétique):'}
               </span>
               <span class="phonetics-sub">Phiên âm IPA & Mẹo khẩu hình chuẩn</span>
             </div>
@@ -288,8 +336,8 @@ const SpeakingModule = {
                           <button class="btn-sound-mini" onclick="window.SpeechService.speak('${this.escapeQuotes(p.word)}', { rate: 0.85 })" title="Nghe người Pháp phát âm mẫu chậm">
                             ${window.Icons.get('volume', '', 12)} Nghe mẫu
                           </button>
-                          <button class="btn-record-mini" onclick="SpeakingModule.startWordPractice('${this.escapeQuotes(p.word)}', '${uniquePracticeId}')" title="Luyện đọc lại từ này để AI chấm điểm">
-                            ${window.Icons.get('mic', '', 12)} Luyện nói
+                          <button class="btn-record-mini" onclick="SpeakingModule.startWordPractice('${this.escapeQuotes(p.word)}', '${uniquePracticeId}')" title="Luyện đọc lại từ này">
+                            ${window.Icons.get('mic', '', 12)} Luyện đọc lại
                           </button>
                         ` : ''}
                       </div>
@@ -310,7 +358,7 @@ const SpeakingModule = {
           <div class="phonetics-diagnostic-card">
             <div class="phonetics-header">
               <span class="phonetics-badge-title">
-                ${window.Icons.get('sparkles', '', 14)} Chữa phát âm & Ngữ âm (Phonétique):
+                ${window.Icons.get('sparkles', '', 14)} ${activeMode === 'friend' ? 'Sửa phát âm chuẩn Paris cho bạn:' : 'Chữa phát âm & Ngữ âm (Phonétique):'}
               </span>
             </div>
             <div class="phonetic-tip-text" style="margin-top: 0.4rem; line-height: 1.5;">
@@ -319,6 +367,14 @@ const SpeakingModule = {
           </div>
         `;
       }
+
+      const tutorTitle = activeMode === 'friend'
+        ? `${window.Icons.get('user', '', 15)} Bạn Pháp thân thiết`
+        : `${window.Icons.get('frenchCockade', '', 15)} Giám khảo DELF B1`;
+
+      const feedbackTitle = activeMode === 'friend'
+        ? `${window.Icons.get('lightbulb', '', 15)} Góp ý & Sửa lỗi ân cần (Correction bienveillante):`
+        : `${window.Icons.get('lightbulb', '', 15)} Nhận xét Ngữ pháp & Từ vựng:`;
 
       return `
         <div class="chat-message-group" data-id="${turn.id}">
@@ -342,8 +398,8 @@ const SpeakingModule = {
           <!-- Tutor response (Frosted Glass Card) -->
           <div class="tutor-bubble">
             <div class="bubble-header">
-              <span class="tutor-badge-title">
-                ${window.Icons.get('frenchCockade', '', 15)} Giáo viên AI
+              <span class="tutor-badge-title ${activeMode === 'friend' ? 'friend-badge' : 'exam-badge'}">
+                ${tutorTitle}
               </span>
               <div style="display: flex; gap: 0.35rem;">
                 <button class="btn-icon-speak" onclick="window.SpeechService.speak('${this.escapeQuotes(turn.frenchReply)}', { rate: 0.85 })" title="Nghe phát âm chậm 0.85x">
@@ -360,9 +416,9 @@ const SpeakingModule = {
             ${turnEvalHTML}
 
             <!-- Feedback note card (Grammar & Lexique) -->
-            <div class="feedback-card">
+            <div class="feedback-card ${activeMode === 'friend' ? 'feedback-friend' : ''}">
               <div class="feedback-title">
-                ${window.Icons.get('lightbulb', '', 15)} Nhận xét Ngữ pháp & Từ vựng:
+                ${feedbackTitle}
               </div>
               <div class="feedback-content">${this.escapeHTML(turn.feedbackVi)}</div>
             </div>
@@ -381,7 +437,20 @@ const SpeakingModule = {
   updateCumulativeScoreMeter() {
     const valEl = document.getElementById('live-score-val');
     const pillEl = document.getElementById('live-score-pill');
+    const meterEl = document.getElementById('live-cumulative-score-meter');
     if (!valEl || !pillEl) return;
+
+    const activeMode = window.StateManager ? window.StateManager.getSpeakingMode() : 'friend';
+
+    if (activeMode === 'friend') {
+      valEl.textContent = 'Bạn bè';
+      pillEl.textContent = 'Không chấm điểm';
+      pillEl.className = 'live-score-pill score-neutral score-friend';
+      if (meterEl) meterEl.title = 'Chế độ Bạn Bè: Trò chuyện gần gũi, không tính điểm, sửa lỗi ân cần';
+      return;
+    }
+
+    if (meterEl) meterEl.title = 'Chế độ Luyện Thi: Đánh giá & Chấm điểm tức thì theo từng câu hội thoại';
 
     const evaluatedTurns = this.conversation.filter(t => t.turnEval && typeof t.turnEval.score === 'number');
     if (evaluatedTurns.length === 0) {

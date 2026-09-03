@@ -724,6 +724,79 @@ body {
   flex-shrink: 0;
 }
 
+/* ================= Speaking Mode Switcher (iOS Segmented Pill) ================= */
+.speaking-mode-segmented-control {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  gap: 2px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mode-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.75rem;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.mode-pill-btn:hover:not(.active) {
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.mode-pill-btn.active {
+  background: var(--card-solid);
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.mode-pill-btn[data-mode="friend"].active {
+  color: #059669;
+}
+
+.mode-pill-btn[data-mode="exam"].active {
+  color: var(--primary);
+}
+
+.mode-pill-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.live-score-pill.score-friend {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.tutor-badge-title.friend-badge {
+  color: #059669;
+}
+
+.tutor-badge-title.exam-badge {
+  color: var(--primary);
+}
+
+.feedback-card.feedback-friend {
+  border-left: 3.5px solid #10b981;
+  background: rgba(16, 185, 129, 0.04);
+}
+
 /* Live Cumulative Proficiency Score Meter */
 .live-score-badge {
   display: inline-flex;
