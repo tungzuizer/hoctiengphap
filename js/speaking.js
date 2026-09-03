@@ -15,6 +15,7 @@ const SpeakingModule = {
     this.loadHistory();
     this.renderTopics();
     this.renderAtelierPhonétique();
+    this.initTopicsCarousel();
   },
 
   loadHistory() {
@@ -508,6 +509,99 @@ const SpeakingModule = {
         </button>
       `;
     }).join('');
+
+    this.initTopicsCarousel();
+  },
+
+  initTopicsCarousel() {
+    const container = document.getElementById('speaking-topics-container');
+    const prevBtn = document.getElementById('btn-topic-prev');
+    const nextBtn = document.getElementById('btn-topic-next');
+    if (!container) return;
+
+    const updateControls = () => {
+      if (!prevBtn || !nextBtn) return;
+      const atStart = container.scrollLeft <= 5;
+      const atEnd = container.scrollLeft >= container.scrollWidth - container.clientWidth - 5;
+      prevBtn.disabled = atStart;
+      nextBtn.disabled = atEnd;
+      prevBtn.style.opacity = atStart ? '0.35' : '1';
+      nextBtn.style.opacity = atEnd ? '0.35' : '1';
+      prevBtn.style.pointerEvents = atStart ? 'none' : 'auto';
+      nextBtn.style.pointerEvents = atEnd ? 'none' : 'auto';
+    };
+
+    if (prevBtn && !prevBtn._bound) {
+      prevBtn._bound = true;
+      prevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        container.scrollBy({ left: -240, behavior: 'smooth' });
+      });
+    }
+
+    if (nextBtn && !nextBtn._bound) {
+      nextBtn._bound = true;
+      nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        container.scrollBy({ left: 240, behavior: 'smooth' });
+      });
+    }
+
+    // Convert vertical wheel to horizontal scroll on desktop
+    if (!container._wheelBound) {
+      container._wheelBound = true;
+      container.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          container.scrollLeft += e.deltaY * 1.2;
+        }
+      }, { passive: false });
+
+      // Drag to scroll with mouse
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+      let hasDragged = false;
+
+      container.addEventListener('mousedown', (e) => {
+        isDown = true;
+        hasDragged = false;
+        container.classList.add('is-dragging');
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDown) {
+          isDown = false;
+          container.classList.remove('is-dragging');
+        }
+      });
+
+      container.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - container.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        if (Math.abs(walk) > 5) {
+          hasDragged = true;
+        }
+        container.scrollLeft = scrollLeft - walk;
+      });
+
+      // Prevent accidental click if user was dragging
+      container.addEventListener('click', (e) => {
+        if (hasDragged) {
+          e.stopPropagation();
+          hasDragged = false;
+        }
+      }, true);
+
+      container.addEventListener('scroll', updateControls, { passive: true });
+      window.addEventListener('resize', updateControls);
+    }
+
+    setTimeout(updateControls, 100);
   },
 
   selectTopic(topicId) {

@@ -102,8 +102,16 @@
 
         <!-- Top Controls: Topic Pills & Quick Actions -->
         <div class="chat-top-bar">
-          <div class="topics-chips-scroll" id="speaking-topics-container">
-            <!-- Dynamically populated by SpeakingModule.renderTopics -->
+          <div class="topics-carousel-container">
+            <button class="btn-topic-nav" id="btn-topic-prev" title="Chủ đề trước" aria-label="Chủ đề trước">
+              <span class="btn-icon-slot" data-icon="chevronLeft"></span>
+            </button>
+            <div class="topics-chips-scroll" id="speaking-topics-container">
+              <!-- Dynamically populated by SpeakingModule.renderTopics -->
+            </div>
+            <button class="btn-topic-nav" id="btn-topic-next" title="Chủ đề tiếp theo" aria-label="Chủ đề tiếp theo">
+              <span class="btn-icon-slot" data-icon="chevronRight"></span>
+            </button>
           </div>
           <div class="chat-top-actions">
             <button class="btn-chat-action btn-action-primary" id="btn-evaluate-speaking" title="Chấm điểm DELF B1 theo chuẩn France Éducation">
